@@ -38,9 +38,7 @@ Built for the [ESA / EU Space Hackathon Challenge #3 — Disaster Risk Monitorin
 ## How to run
 
 ```bash
-docker build -t my-react-app -f Dockerfile .
-
-docker run -p 5173:5173 my-react-app
+docker compose up
 ```
 
 ## Features
