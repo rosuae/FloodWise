@@ -35,64 +35,58 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
   }, [areaHectares]);
 
   const selectedCrop = CROP_DATABASE.find(c => c.id === selectedCropId) || CROP_DATABASE[0];
-
-  // Hazard is related to duration (as per prompt)
-  const hazardFactor = durationDays / 7; // Normalize to a week for calculation impact
-  
-  // Vulnerability factor from crop
+  const hazardFactor = durationDays / 7; 
   const vulnerability = selectedCrop.vulnerabilityFactor;
-  
-  // Equation: Expunere (Valoare Cultură) x Hazard (Durată) x Vulnerabilitate
   const expunere = customArea * selectedCrop.valuePerHectare;
   const financialLoss = expunere * hazardFactor * vulnerability * riskProbability;
 
   return (
-    <div className="absolute bottom-6 right-6 z-[1000] w-80 rounded-xl border border-fw-neutral/20 bg-white/90 p-5 shadow-xl backdrop-blur-md">
-      <div className="mb-4 flex items-center gap-2 border-b border-fw-neutral/10 pb-3">
-        <TrendingDown className="text-fw-primary" size={20} />
-        <h3 className="font-bold text-fw-text uppercase tracking-wider text-sm">Economic Impact Calculator</h3>
+    <div className="absolute bottom-6 right-6 z-[1000] w-80 rounded-xl border-4 border-fw-primary bg-white p-6 shadow-2xl">
+      <div className="mb-6 flex items-center gap-2 border-b-2 border-fw-neutral/20 pb-4">
+        <TrendingDown className="text-fw-primary" size={24} />
+        <h3 className="font-black text-black uppercase tracking-tighter text-lg">Economic Impact</h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* Crop Selection */}
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 text-xs font-semibold text-fw-text/70 uppercase">
-            <Leaf size={14} /> Tip Cultură (Vulnerabilitate)
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-xs font-black text-fw-text uppercase tracking-widest">
+            <Leaf size={14} className="text-fw-primary" /> Tip Cultură
           </label>
           <select 
             value={selectedCropId}
             onChange={(e) => setSelectedCropId(e.target.value)}
-            className="w-full rounded-md border border-fw-neutral/20 bg-white px-3 py-2 text-sm focus:border-fw-primary focus:outline-none focus:ring-1 focus:ring-fw-primary"
+            className="w-full rounded-lg border-2 border-fw-neutral/30 bg-fw-bg px-3 py-2 text-sm font-bold text-fw-text focus:border-fw-primary focus:outline-none"
           >
             {CROP_DATABASE.map(crop => (
-              <option key={crop.id} value={crop.id}>{crop.name} (Vuln: {crop.vulnerabilityFactor})</option>
+              <option key={crop.id} value={crop.id} className="text-fw-text font-bold">{crop.name}</option>
             ))}
           </select>
         </div>
 
         {/* Area Input */}
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 text-xs font-semibold text-fw-text/70 uppercase">
-            <AlertTriangle size={14} /> Suprafață (Expunere)
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-xs font-black text-fw-text uppercase tracking-widest">
+            <AlertTriangle size={14} className="text-fw-primary" /> Suprafață
           </label>
           <div className="flex items-center gap-2">
             <input 
               type="number"
               value={customArea}
               onChange={(e) => setCustomArea(Number(e.target.value))}
-              className="w-full rounded-md border border-fw-neutral/20 bg-white px-3 py-2 text-sm focus:border-fw-primary focus:outline-none focus:ring-1 focus:ring-fw-primary"
+              className="w-full rounded-lg border-2 border-fw-neutral/30 bg-fw-bg px-3 py-2 text-sm font-black text-fw-text focus:border-fw-primary focus:outline-none"
             />
-            <span className="text-xs font-bold text-fw-text/50">ha</span>
+            <span className="text-sm font-black text-fw-text underline decoration-fw-primary decoration-2">ha</span>
           </div>
         </div>
 
         {/* Duration Slider */}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="flex items-center gap-2 text-xs font-semibold text-fw-text/70 uppercase">
-              <Clock size={14} /> Hazard (Durată)
+            <label className="flex items-center gap-2 text-xs font-black text-fw-text uppercase tracking-widest">
+              <Clock size={14} className="text-fw-primary" /> Durată Hazard
             </label>
-            <span className="text-xs font-bold text-fw-primary">{durationDays} zile</span>
+            <span className="text-xs font-black text-fw-primary bg-fw-primary/10 px-2 py-0.5 rounded">{durationDays} zile</span>
           </div>
           <input 
             type="range"
@@ -100,32 +94,31 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
             max="14"
             value={durationDays}
             onChange={(e) => setDurationDays(Number(e.target.value))}
-            className="w-full accent-fw-primary"
+            className="w-full accent-fw-primary h-2 bg-fw-neutral/20 rounded-lg appearance-none cursor-pointer"
           />
         </div>
 
         {/* Results */}
-        <div className="mt-6 rounded-lg bg-fw-primary/5 p-4 border border-fw-primary/10">
-          <div className="text-xs font-semibold text-fw-text/60 uppercase mb-1">Pierdere Financiară Estimată</div>
+        <div className="mt-6 rounded-xl bg-fw-primary p-5 shadow-lg shadow-fw-primary/30">
+          <div className="text-[10px] font-black text-fw-bg/80 uppercase mb-1 tracking-widest">Pierdere Estimată</div>
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-black text-fw-primary">
+            <span className="text-3xl font-black text-fw-bg leading-none">
               {Math.round(financialLoss).toLocaleString('ro-RO')}
             </span>
-            <span className="text-sm font-bold text-fw-primary">EUR</span>
+            <span className="text-sm font-black text-fw-bg">EUR</span>
           </div>
-          <div className="mt-2 flex items-center gap-2 text-[10px] text-fw-text/50 italic border-t border-fw-primary/10 pt-2">
+          <div className="mt-3 flex items-center gap-2 text-[10px] text-fw-bg/70 font-bold border-t border-fw-bg/20 pt-3">
             <DollarSign size={10} />
             Expunere: {Math.round(expunere).toLocaleString()} EUR
           </div>
         </div>
 
-        <div className="text-[10px] text-fw-text/40 leading-tight bg-fw-neutral/5 p-2 rounded">
-          <strong>Ecuație:</strong> Expunere (Cultură x Ha) x Hazard (Durată) x Vulnerabilitate
+        <div className="text-[9px] text-fw-text/60 font-black leading-tight bg-fw-neutral/5 p-3 rounded-lg border border-fw-neutral/10 uppercase tracking-tighter">
+          Calcul: Expunere (Ha x Valoare) x Hazard x Vulnerabilitate
         </div>
       </div>
     </div>
   );
-
 };
 
 export default EconomicImpactPanel;

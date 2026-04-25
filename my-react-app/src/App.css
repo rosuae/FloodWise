@@ -13,21 +13,21 @@
 @layer base {
   :root {
     --theme-bg: #e6deb0;
-    --theme-text: #3f5129;
-    --theme-primary: #5c722b;
-    --theme-primary-hover: #7c7937;
-    --theme-secondary: #91a436;
+    --theme-text: #1a2a0a; /* Darker, more intense green */
+    --theme-primary: #3d4f1a; /* Darker, more intense primary */
+    --theme-primary-hover: #5c722b;
+    --theme-secondary: #7c8e2b;
     --theme-accent: #f8d856;
-    --theme-neutral: #757371;
+    --theme-neutral: #5a5856; /* Darker neutral */
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --theme-bg: #3f5129;
+      --theme-bg: #1a2a0a;
       --theme-text: #e6deb0;
-      --theme-primary: #91a436;
-      --theme-primary-hover: #b5b94a;
-      --theme-secondary: #53522d;
+      --theme-primary: #f8d856;
+      --theme-primary-hover: #ffe27d;
+      --theme-secondary: #91a436;
       --theme-accent: #f8d856;
       --theme-neutral: #b19448;
     }
@@ -35,7 +35,7 @@
 
   body {
     margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family: 'Roboto Mono', monospace;
     background-color: var(--theme-bg);
     color: var(--theme-text);
   }
