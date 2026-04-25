@@ -21,8 +21,7 @@ services:
       context: ./backend
     volumes:
       - ./backend:/app
-    # Folosim comanda din Dockerfile sau o suprascriem fara instalari inutile
-    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
@@ -42,15 +41,15 @@ services:
   frontend:
     build:
       context: ./my-react-app
+    user: "0:0"
     volumes:
       - ./my-react-app:/app
       - /app/node_modules
-    # Am scos npm install de aici, Dockerfile se ocupa de asta la build
     command: npm run dev -- --host 0.0.0.0 --port 5173
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      VITE_PROXY_TARGET: http://backend:8000
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     depends_on:

@@ -1,24 +1,22 @@
 ARG NODE_VERSION=24.14.0-alpine
-FROM node:${NODE_VERSION} AS dev
+FROM node:${NODE_VERSION}
 
 # Setam directorul de lucru
 WORKDIR /app
 
-# Schimbam ownership-ul folderului de lucru la utilizatorul node
-RUN chown node:node /app
+# Copiem fisierele de dependinte
+COPY package*.json ./
 
-# Trecem la utilizatorul node inainte de a instala dependintele
-USER node
-
-# Copiem fisierele de dependinte cu ownership-ul corect
-COPY --chown=node:node package*.json ./
-
-# Instalam dependintele (acum ca utilizator node)
+# Instaleaza dependintele ca root
 RUN npm install --no-audit --no-fund
 
 # Copiem restul codului
-COPY --chown=node:node . .
+COPY . .
 
+# Setează permisiuni complete pe /app pentru node user
+RUN chown -R node:node /app && chmod -R 755 /app
+
+USER node
 EXPOSE 5173
 
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

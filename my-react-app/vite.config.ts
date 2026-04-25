@@ -4,11 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://backend:8000'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),
-    tailwindcss()
-  ],
+  plugins: [react(), tailwindcss()],
+  cacheDir: '/tmp/.vite',
   server: {
     host: true,
     proxy: {

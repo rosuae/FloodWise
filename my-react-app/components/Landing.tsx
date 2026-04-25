@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const FloodWiseLanding = () => {
   return (
-    <div className="min-h-screen bg-fw-bg text-fw-text font-sans relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-fw-bg text-fw-text font-sans relative transition-colors duration-300">
       
       {/* Background Decor - Râul șerpuind pe toată înălțimea */}
       <svg
@@ -113,47 +113,57 @@ const FloodWiseLanding = () => {
       </section>
 
       {/* Technical Overview Section */}
-      <section className="relative z-10 py-24 bg-fw-text text-fw-bg overflow-hidden">
+      <section className="relative z-10 py-24 border-y border-fw-primary/20 bg-[#1a240f] transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-4xl font-bold mb-6 text-fw-bg">Full Stack Reliability</h2>
-            <p className="text-fw-bg opacity-75 mb-8 text-lg">
+          <div className="text-left">
+            <h2 className="text-4xl font-black mb-6 text-[#FBF5DB] leading-tight">Full Stack Reliability</h2>
+            <p className="text-[#C0B6AC] mb-8 text-lg leading-relaxed font-bold">
               Combining Sentinel-1 SAR and Sentinel-2 MSI data with high-fidelity 
               weather reanalysis to create the most accurate flood prediction engine.
             </p>
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-fw-accent" />
-                <span className="text-fw-bg opacity-90">FastAPI backend with PostgreSQL storage</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-fw-accent" />
-                <span className="text-fw-bg opacity-90">Machine Learning prediction engine (Python)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-fw-accent" />
-                <span className="text-fw-bg opacity-90">Automated Alembic migration workflow</span>
-              </div>
+              {[
+                "FastAPI backend with PostgreSQL storage",
+                "Machine Learning prediction engine (Python)",
+                "Automated Alembic migration workflow",
+                "Sentinel-1/2 data processing with GDAL/Rasterio",
+                "Real-time WebSocket alerts for critical events"
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-[#f8d856]" />
+                  <span className="text-[#FBF5DB] font-bold text-sm tracking-tight">{item}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="bg-fw-bg/10 p-6 rounded-xl border border-fw-bg/20 font-mono text-sm shadow-2xl backdrop-blur-md">
-            <div className="flex gap-2 mb-4">
-              <div className="w-3 h-3 rounded-full bg-red-400" />
-              <div className="w-3 h-3 rounded-full bg-fw-accent" />
-              <div className="w-3 h-3 rounded-full bg-fw-primary" />
+          
+          <div className="bg-[#2d3a1d] p-1 rounded-2xl shadow-2xl overflow-hidden border-2 border-[#FBF5DB]/20">
+            <div className="bg-[#1a240f]/40 px-5 py-4 border-b border-[#FBF5DB]/10 flex justify-between items-center">
+              <div className="flex gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400/40" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/40" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400/40" />
+              </div>
+              <span className="text-[11px] font-mono font-black tracking-widest text-[#f8d856] uppercase px-2 py-0.5 bg-white/5 rounded">API Explorer</span>
             </div>
-            <p className="text-fw-secondary">GET /alerts</p>
-            <pre className="text-fw-bg opacity-90 mt-2">
+            <div className="p-8 text-left bg-[#1a240f]/20">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-xs font-mono font-black text-[#1a240f] bg-[#f8d856] px-3 py-1.5 rounded shadow-sm">GET</span>
+                <span className="text-sm font-mono font-bold text-[#C0B6AC]">/api/v1/alerts</span>
+              </div>
+              <pre className="font-mono text-sm leading-relaxed text-[#C0B6AC] font-bold">
 {`{
-  "region": "RO-IF-001",
-  "risk_score": 0.82,
-  "level": "high",
-  "drivers": [
-    "soil_moisture",
-    "precipitation"
-  ]
+  "`}<span className="text-[#f8d856]">region</span>{`": "RO-IF-001",
+  "`}<span className="text-[#f8d856]">risk_level</span>{`": "high",
+  "`}<span className="text-[#f8d856]">score</span>{`": 0.82,
+  "`}<span className="text-[#f8d856]">coordinates</span>{`": { 
+    "lat": 44.4325, 
+    "lon": 26.1025 
+  },
+  "`}<span className="text-[#f8d856]">status</span>{`": "active"
 }`}
-            </pre>
+              </pre>
+            </div>
           </div>
         </div>
       </section>
