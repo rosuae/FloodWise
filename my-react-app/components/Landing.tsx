@@ -44,7 +44,7 @@ const FloodWiseLanding = () => {
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8">
           Predict. Warn. <span className="text-blue-600">Protect.</span>
         </h1>
-        <p className="text-xl text-center text-slate-600 leading-relaxed max-w-3xl mx-auto mb-10">
+        <p className="text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto mb-10">
           AI-powered flood prediction and early warning platform using European space data. 
           Monitor soil moisture and precipitation levels before disasters strike.
         </p>
