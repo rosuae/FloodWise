@@ -38,8 +38,68 @@ Built for the [ESA / EU Space Hackathon Challenge #3 — Disaster Risk Monitorin
 ## How to run
 
 ```bash
+copy .env.example .env
 docker compose up
 ```
+
+The stack now includes PostgreSQL, and the backend runs migrations automatically on startup.
+
+## Local Development Workflow
+
+### 1) Environment setup
+
+Use the root template to configure Docker Compose:
+
+```bash
+copy .env.example .env
+```
+
+Key variables:
+
+- `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`
+- `BACKEND_PORT`, `FRONTEND_PORT`
+- `VITE_API_URL`
+
+### 2) Start services
+
+```bash
+docker compose up --build
+```
+
+Services:
+
+- API: `http://localhost:8000`
+- Frontend: `http://localhost:5173`
+- Database: `localhost:5432`
+
+### 3) Health checks
+
+- API health: `GET /health`
+- Database health: `GET /health/db`
+
+### 4) Migration workflow (Alembic)
+
+From the backend directory:
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+Create a new migration:
+
+```bash
+alembic revision -m "describe change"
+```
+
+The initial migration is available in `backend/alembic/versions/20260425_0001_initial_schema.py`.
+
+### 5) Team collaboration rules
+
+- Keep one logical schema change per migration file.
+- Do not edit old migration files that are already merged.
+- Run `alembic upgrade head` before starting new backend feature work.
+- Resolve migration conflicts via a merge migration when two branches add revisions in parallel.
 
 ## Features
 

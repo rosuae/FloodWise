@@ -1,18 +1,44 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-floodwise}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-floodwise}
+      POSTGRES_DB: ${DB_NAME:-floodwise}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - floodwise-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-floodwise} -d ${DB_NAME:-floodwise}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
-    container_name: floodwise-backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://${DB_USER:-floodwise}:${DB_PASSWORD:-floodwise}@db:5432/${DB_NAME:-floodwise}
+      APP_ENV: ${APP_ENV:-development}
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:
     build:
       context: ./my-react-app
-    container_name: floodwise-frontend
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT:-5173}:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  floodwise-db-data:
