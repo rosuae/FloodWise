@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Droplets, 
   CloudRain, 
@@ -9,13 +9,18 @@ import {
   Waves,
   Calendar,
   Map as MapIcon,
-  Info
+  Info,
+  ArrowDownToLine,
+  ChevronDown,
+  ChevronUp,
+  Activity
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const [showGroundwaterDetails, setShowGroundwaterDetails] = useState(false);
   
   const area = queryParams.get('area');
   const risk = queryParams.get('risk');
@@ -27,6 +32,7 @@ const Dashboard: React.FC = () => {
     soilHumidity: 38,
     floodRisk: risk ? parseInt(risk) : 65, // procent
     plantationRisk: 42, // procent
+    groundwaterRisk: 28, // new risk category
     rainfall7Days: "42.5 mm",
     terrainSlope: "4.8°",
     // Umiditatea solului pe ultimele 6 luni
@@ -37,6 +43,12 @@ const Dashboard: React.FC = () => {
       { month: 'Feb', value: 52 },
       { month: 'Mar', value: 40 },
       { month: 'Apr', value: 38 },
+    ],
+    groundwaterParams: [
+      { label: 'Water Table Depth', value: '1.2m', status: 'Warning', icon: <ArrowDownToLine size={14} /> },
+      { label: 'Aquifer Saturation', value: '84%', status: 'High', icon: <Droplets size={14} /> },
+      { label: 'Soil Permeability', value: '0.5 cm/h', status: 'Low', icon: <Activity size={14} /> },
+      { label: 'Hydrostatic Pressure', value: '102 kPa', status: 'Normal', icon: <Waves size={14} /> },
     ]
   };
 
@@ -92,60 +104,110 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* Risc Principal Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* Riscul de Inundații */}
-          <div className="bg-white border-4 border-blue-600 p-8 rounded-3xl shadow-xl relative overflow-hidden">
+          <div className="bg-white border-4 border-blue-600 p-6 rounded-3xl shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Waves size={160} />
+              <Waves size={120} />
             </div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/40">
-                  <Waves size={32} />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/40">
+                  <Waves size={24} />
                 </div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter text-black">Flood Risk</h3>
+                <h3 className="text-xl font-black uppercase tracking-tighter text-black">Flood Risk</h3>
               </div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-7xl font-black text-blue-600">{stats.floodRisk}%</span>
-                <span className="text-xs font-black text-black uppercase tracking-widest border-b-2 border-blue-600">Alert Level</span>
+                <span className="text-5xl font-black text-blue-600">{stats.floodRisk}%</span>
+                <span className="text-[10px] font-black text-black uppercase tracking-widest border-b-2 border-blue-600">Alert Level</span>
               </div>
-              <div className="w-full bg-blue-100 h-6 rounded-full overflow-hidden mb-6 border-2 border-blue-600">
+              <div className="w-full bg-blue-100 h-4 rounded-full overflow-hidden mb-4 border-2 border-blue-600">
                 <div 
                   className="bg-blue-600 h-full transition-all duration-1000 shadow-[0_0_20px_rgba(37,99,235,0.5)]" 
                   style={{ width: `${stats.floodRisk}%` }}
                 />
               </div>
-              <p className="text-sm font-black leading-tight text-black/80 uppercase tracking-tighter">
-                {stats.floodRisk > 70 ? 'Critical Alert! Imminent flood probability.' : 'High discharge probability in the selected area. Monitoring secondary dikes recommended.'}
+              <p className="text-[10px] font-black leading-tight text-black/80 uppercase tracking-tighter">
+                {stats.floodRisk > 70 ? 'Critical Alert! Imminent flood probability.' : 'High discharge probability in the selected area.'}
               </p>
             </div>
           </div>
 
           {/* Riscul pentru Plantații */}
-          <div className="bg-white border-4 border-fw-secondary p-8 rounded-3xl shadow-xl relative overflow-hidden">
+          <div className="bg-white border-4 border-fw-secondary p-6 rounded-3xl shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 text-fw-secondary">
-              <Leaf size={160} />
+              <Leaf size={120} />
             </div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-4 bg-fw-secondary text-white rounded-2xl shadow-lg shadow-fw-secondary/40">
-                  <Leaf size={32} />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-fw-secondary text-white rounded-xl shadow-lg shadow-fw-secondary/40">
+                  <Leaf size={24} />
                 </div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter text-black">{crop || 'Crops'} Impact</h3>
+                <h3 className="text-xl font-black uppercase tracking-tighter text-black">Crops Impact</h3>
               </div>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-7xl font-black text-fw-secondary">{stats.plantationRisk}%</span>
-                <span className="text-xs font-black text-black uppercase tracking-widest border-b-2 border-fw-secondary">Vulnerability</span>
+                <span className="text-5xl font-black text-fw-secondary">{stats.plantationRisk}%</span>
+                <span className="text-[10px] font-black text-black uppercase tracking-widest border-b-2 border-fw-secondary">Vulnerability</span>
               </div>
-              <div className="w-full bg-fw-secondary/10 h-6 rounded-full overflow-hidden mb-6 border-2 border-fw-secondary">
+              <div className="w-full bg-fw-secondary/10 h-4 rounded-full overflow-hidden mb-4 border-2 border-fw-secondary">
                 <div 
                   className="bg-fw-secondary h-full transition-all duration-1000 shadow-[0_0_20px_rgba(145,164,54,0.5)]" 
                   style={{ width: `${stats.plantationRisk}%` }}
                 />
               </div>
-              <p className="text-sm font-black leading-tight text-black/80 uppercase tracking-tighter">
-                {crop ? `${crop} crops are in the direct impact zone.` : 'Wheat and rapeseed crops are in the impact zone.'} Vulnerability is moderate due to favorable terrain slope.
+              <p className="text-[10px] font-black leading-tight text-black/80 uppercase tracking-tighter">
+                {crop ? `${crop} crops are in the direct impact zone.` : 'Vulnerability is moderate due to terrain slope.'}
               </p>
+            </div>
+          </div>
+
+          {/* Groundwater Flooding Risk */}
+          <div className={`bg-white border-4 transition-all duration-300 ${showGroundwaterDetails ? 'border-fw-accent scale-[1.02]' : 'border-fw-neutral/30'} p-6 rounded-3xl shadow-xl relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 p-4 opacity-5 text-fw-accent">
+              <ArrowDownToLine size={120} />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-fw-accent text-black rounded-xl shadow-lg shadow-fw-accent/40">
+                  <ArrowDownToLine size={24} />
+                </div>
+                <h3 className="text-xl font-black uppercase tracking-tighter text-black">Groundwater</h3>
+              </div>
+              <div className="flex items-baseline gap-2 mb-4">
+                <span className="text-5xl font-black text-black">{stats.groundwaterRisk}%</span>
+                <span className="text-[10px] font-black text-black uppercase tracking-widest border-b-2 border-fw-accent">Saturation</span>
+              </div>
+              <div className="w-full bg-fw-accent/10 h-4 rounded-full overflow-hidden mb-4 border-2 border-fw-accent">
+                <div 
+                  className="bg-fw-accent h-full transition-all duration-1000 shadow-[0_0_20px_rgba(248,216,86,0.5)]" 
+                  style={{ width: `${stats.groundwaterRisk}%` }}
+                />
+              </div>
+              
+              <button 
+                onClick={() => setShowGroundwaterDetails(!showGroundwaterDetails)}
+                className="w-full flex items-center justify-between mt-2 px-3 py-2 bg-black text-white rounded-lg font-black uppercase text-[10px] tracking-widest hover:bg-fw-primary transition-colors"
+              >
+                {showGroundwaterDetails ? 'Hide Details' : 'View Details'}
+                {showGroundwaterDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {showGroundwaterDetails && (
+                <div className="mt-4 space-y-3 pt-4 border-t-2 border-fw-neutral/10 animate-in fade-in zoom-in duration-300">
+                  {stats.groundwaterParams.map((param, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-fw-primary">{param.icon}</span>
+                        <span className="text-[10px] font-bold uppercase text-black/60">{param.label}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-black text-black block leading-none">{param.value}</span>
+                        <span className={`text-[8px] font-black uppercase ${param.status === 'Warning' || param.status === 'High' ? 'text-red-500' : 'text-fw-secondary'}`}>{param.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
