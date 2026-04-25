@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../src/context/AuthContext';
-import { UserPlus, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, Phone } from 'lucide-react';
 
 const Register: React.FC = () => {
-  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [smsEnabled, setSmsEnabled] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -36,6 +38,8 @@ const Register: React.FC = () => {
           email,
           password,
           full_name: fullName,
+          phone_number: phoneNumber,
+          sms_alerts_enabled: smsEnabled ? 1 : 0
         }),
       });
 
@@ -133,6 +137,36 @@ const Register: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-fw-text mb-1">Phone Number</label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-fw-text opacity-50">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <input
+                  type="tel"
+                  required
+                  className="block w-full rounded-lg border border-fw-neutral/30 bg-fw-bg py-2.5 pl-10 pr-3 text-fw-text placeholder-fw-text/50 transition-all focus:border-fw-primary focus:bg-fw-bg focus:outline-none focus:ring-2 focus:ring-fw-primary/20 sm:text-sm"
+                  placeholder="+40 7xx xxx xxx"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-fw-primary/5 rounded-xl border-2 border-fw-primary/10 transition-all hover:bg-fw-primary/10">
+              <input
+                type="checkbox"
+                id="sms-alerts"
+                checked={smsEnabled}
+                onChange={(e) => setSmsEnabled(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-fw-primary text-fw-primary focus:ring-fw-primary/20 accent-fw-primary cursor-pointer"
+              />
+              <label htmlFor="sms-alerts" className="text-xs font-black uppercase text-fw-text cursor-pointer select-none">
+                Subscribe to SMS Flood Alerts
+              </label>
             </div>
 
             <div>
