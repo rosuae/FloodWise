@@ -1,2 +1,10 @@
 fastapi
 uvicorn
+rasterio
+numpy
+geopandas
+rioxarray
+shapely
+requests
+pystac-client
+python-dotenv
