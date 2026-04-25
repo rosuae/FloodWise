@@ -1,6 +1,7 @@
 import './App.css'
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import RiskMap from '../components/RiskMap'
+import Dashboard from '../components/Dashboard'
 import Landing from '../components/Landing'
 import Login from '../components/Login'
 import Register from '../components/Register'
@@ -10,7 +11,7 @@ import { useState } from 'react'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-bold transition-all',
+    'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-bold transition-all no-underline',
     isActive ? 'bg-fw-primary text-fw-bg shadow-sm shadow-fw-primary/20 scale-105' : 'text-fw-text hover:bg-fw-secondary/30',
   ].join(' ')
 

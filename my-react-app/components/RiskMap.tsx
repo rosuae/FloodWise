@@ -243,25 +243,10 @@ const GeomanControls: React.FC<{
   const map = useMap();
 
   useEffect(() => {
-    if (!map.pm) return;
+    const pm = map.pm;
+    if (!pm) return;
 
-    map.pm.addControls({
-      position: 'topleft',
-      drawCircle: false,
-      drawMarker: false,
-      drawCircleMarker: false,
-      drawPolyline: false,
-      drawRectangle: true,
-      drawPolygon: true,
-      editMode: true,
-      dragMode: true,
-      cutLayer: false,
-      removalMode: true,
-    });
-
-    map.pm.setLang('en');
-
-    map.on('pm:create', (e) => {
+    const handleCreate = (e: L.LeafletEvent & { layer: L.Layer }) => {
       const layer = e.layer as L.Polygon;
       const coords = layer.getLatLngs()[0] as L.LatLng[];
       
@@ -286,10 +271,29 @@ const GeomanControls: React.FC<{
         L.DomEvent.stopPropagation(ev);
         onAreaCreated(areaHectares, latLngCoords);
       });
+    };
+
+    pm.addControls({
+      position: 'topleft',
+      drawCircle: false,
+      drawMarker: false,
+      drawCircleMarker: false,
+      drawPolyline: false,
+      drawRectangle: true,
+      drawPolygon: true,
+      editMode: true,
+      dragMode: true,
+      cutLayer: false,
+      removalMode: true,
     });
 
+    pm.setLang('en');
+
+    map.on('pm:create', handleCreate);
+
     return () => {
-      map.pm.removeControls();
+      map.off('pm:create', handleCreate);
+      pm.removeControls();
     };
   }, [map, onAreaCreated]);
 

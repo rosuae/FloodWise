@@ -55,7 +55,7 @@ const Dashboard: React.FC = () => {
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter uppercase mb-2">
-              Analytical <span className="text-fw-primary underline decoration-4 decoration-fw-accent">Dashboard</span>
+              Analytical <span className="text-fw-primary">Dashboard</span>
             </h1>
             <p className="text-fw-text font-black uppercase text-xs tracking-widest bg-fw-primary/10 inline-block px-2 py-1 rounded">
               Agricultural Risk Monitoring System
