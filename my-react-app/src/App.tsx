@@ -1,7 +1,6 @@
 import './App.css'
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import RiskMap from '../components/RiskMap'
-import Dashboard from '../components/Dashboard'
 import Landing from '../components/Landing'
 import Login from '../components/Login'
 import Register from '../components/Register'
