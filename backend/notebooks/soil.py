@@ -71,6 +71,16 @@ def get_soil_moisture_data(bbox, startDate, endDate):
     startDate = normalize_iso8601_utc(startDate)
     endDate = normalize_iso8601_utc(endDate)
 
+    min_lon, min_lat, max_lon, max_lat = bbox
+    mid_lat_rad = math.radians((min_lat + max_lat) / 2.0)
+    meters_per_deg_lat = 111320.0
+    meters_per_deg_lon = 111320.0 * math.cos(mid_lat_rad)
+    width_m = max(0.0, (max_lon - min_lon) * meters_per_deg_lon)
+    height_m = max(0.0, (max_lat - min_lat) * meters_per_deg_lat)
+    # Keep request close to 10m x 10m output grid while using CRS84 bounds.
+    width_px = max(1, int(math.ceil(width_m / 10.0)))
+    height_px = max(1, int(math.ceil(height_m / 10.0)))
+
     token = get_token()
     url = "https://sh.dataspace.copernicus.eu/api/v1/process"
     
@@ -106,11 +116,16 @@ def get_soil_moisture_data(bbox, startDate, endDate):
                     "from": startDate,
                     "to": endDate
                 },
-                "mosaickingOrder": "mostRecent"
+                "mosaickingOrder": "mostRecent",
+                "acquisitionMode": "IW",
+                "polarization": "DV",
+                "resolution": "HIGH"
             }
         }]
     },
     "output": {
+        "width": width_px,
+        "height": height_px,
         "responses": [{"format": {"type": "image/tiff"}}]
     },
     "evalscript": evalscript
@@ -137,10 +152,11 @@ def get_soil_moisture_data(bbox, startDate, endDate):
     # TIFF magic bytes: little endian II*\x00 sau big endian MM\x00*
     if not (content.startswith(b"II*\x00") or content.startswith(b"MM\x00*")):
         raise RuntimeError("Response is not a valid TIFF binary payload.")
+    
 
     return content
 
-def pointToBox(lon, lat, size=0.2):
+def pointToBox(lon, lat, size=0.1):
     half_size = size / 2
     min_lon = lon - half_size
     max_lon = lon + half_size
@@ -148,13 +164,15 @@ def pointToBox(lon, lat, size=0.2):
     max_lat = lat + half_size
     return [min_lon, min_lat, max_lon, max_lat]
 
-def fetchSoilMoistureHelper(lon, lat, endDate, dateRangeDays=10):
+def fetchSoilMoistureHelper(lat, lon, endDate, dateRangeDays=10):
     # Calculate the start date based on the end date and date range
     startDate = datetime.strptime(endDate, "%Y-%m-%dT%H:%M:%SZ") - timedelta(days=dateRangeDays)
     startDate = startDate.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Format expected by get_soil_moisture_data -> [min_lon, min_lat, max_lon, max_lat]
     bbox = pointToBox(lon, lat)
+    
+    # bbox = [27.757387,45.561667, 27.779617,45.561667]
     
     print(bbox)
 
@@ -214,13 +232,13 @@ def fetchSoilMoistureHelper(lon, lat, endDate, dateRangeDays=10):
     # 5. Vizualizare
     vmin, vmax = np.percentile(valid, [2, 98])
 
-    plt.figure(figsize=(10, 7))
-    # Folosim RdYlBu_r: Roșu = Uscat, Albastru = Ud
-    plt.imshow(moisture_map, cmap="RdYlBu_r", vmin=0, vmax=100)
-    plt.colorbar(label="Saturația Solului (%)")
-    plt.title(f"FloodWise: Hartă Saturație (Medie: {average_moisture:.1f}%)")
-    plt.axis("off")
-    plt.show()
+    # plt.figure(figsize=(10, 7))
+    # # Folosim RdYlBu_r: Roșu = Uscat, Albastru = Ud
+    # plt.imshow(moisture_map, cmap="RdYlBu_r", vmin=vmin, vmax=vmax)
+    # plt.colorbar(label="Saturația Solului (%)")
+    # plt.title(f"FloodWise: Hartă Saturație (Medie: {average_moisture:.1f}%)")
+    # plt.axis("off")
+    # plt.show()
     return average_moisture
     
     # 2024-10-29T23:59:59Z
@@ -255,4 +273,4 @@ def fetchSoilMoisture(lon, lat, endDate, initialRangeDays=3, stepDays=30, maxRan
 
     raise RuntimeError("Max retries exceeded: no valid pixels found for the selected area and period.")
 
-fetchSoilMoisture(27.76228,45.575496, "2024-10-29T23:59:59Z")
+# fetchSoilMoisture(45.575496, 27.76228, "2026-04-25T23:59:59Z")
