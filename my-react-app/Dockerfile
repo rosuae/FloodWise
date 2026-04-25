@@ -1,14 +1,19 @@
 ARG NODE_VERSION=24.14.0-alpine
-FROM node:${NODE_VERSION} AS dev
+FROM node:${NODE_VERSION}
 
 WORKDIR /app
 
-# Copiem doar fisierele de dependinte pentru a folosi cache-ul Docker
+# Copiem fisierele de dependinte
 COPY package*.json ./
+
+# Instaleaza dependintele ca root
 RUN npm install --no-audit --no-fund
 
-# Copiem restul codului cu ownership-ul corect direct
-COPY --chown=node:node . .
+# Copiem restul codului
+COPY . .
+
+# Setează permisiuni complete pe /app pentru node user
+RUN chown -R node:node /app && chmod -R 755 /app
 
 USER node
 EXPOSE 5173
