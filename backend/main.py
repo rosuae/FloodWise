@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from database import get_db
-from __future__ import annotations
+
 
 from datetime import datetime, timezone
 from typing import Literal
