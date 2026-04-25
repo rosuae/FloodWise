@@ -78,16 +78,16 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl shadow-slate-200/50">
+    <div className="flex flex-1 items-center justify-center bg-fw-bg px-4 py-12 transition-colors duration-300">
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-fw-bg border border-fw-neutral/30 p-8 shadow-xl shadow-fw-primary/20">
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-            <UserPlus className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-fw-secondary/20">
+            <UserPlus className="h-6 w-6 text-fw-primary" />
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-fw-text">
             Create an Account
           </h2>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-fw-text opacity-80">
             Join the FloodWise community
           </p>
         </div>
@@ -102,15 +102,15 @@ const Register: React.FC = () => {
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-fw-text mb-1">Full Name</label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-fw-text opacity-50">
                   <User className="h-5 w-5" />
                 </div>
                 <input
                   type="text"
                   required
-                  className="block w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-3 text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                  className="block w-full rounded-lg border border-fw-neutral/30 bg-fw-bg py-2.5 pl-10 pr-3 text-fw-text placeholder-fw-text/50 transition-all focus:border-fw-primary focus:bg-fw-bg focus:outline-none focus:ring-2 focus:ring-fw-primary/20 sm:text-sm"
                   placeholder="John Doe"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -119,15 +119,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-fw-text mb-1">Email</label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-fw-text opacity-50">
                   <Mail className="h-5 w-5" />
                 </div>
                 <input
                   type="email"
                   required
-                  className="block w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-3 text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                  className="block w-full rounded-lg border border-fw-neutral/30 bg-fw-bg py-2.5 pl-10 pr-3 text-fw-text placeholder-fw-text/50 transition-all focus:border-fw-primary focus:bg-fw-bg focus:outline-none focus:ring-2 focus:ring-fw-primary/20 sm:text-sm"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -136,15 +136,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-fw-text mb-1">Password</label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-fw-text opacity-50">
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
                   type="password"
                   required
-                  className="block w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-3 text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                  className="block w-full rounded-lg border border-fw-neutral/30 bg-fw-bg py-2.5 pl-10 pr-3 text-fw-text placeholder-fw-text/50 transition-all focus:border-fw-primary focus:bg-fw-bg focus:outline-none focus:ring-2 focus:ring-fw-primary/20 sm:text-sm"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -153,15 +153,15 @@ const Register: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium text-fw-text mb-1">Confirm Password</label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-fw-text opacity-50">
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
                   type="password"
                   required
-                  className="block w-full rounded-lg border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-3 text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:text-sm"
+                  className="block w-full rounded-lg border border-fw-neutral/30 bg-fw-bg py-2.5 pl-10 pr-3 text-fw-text placeholder-fw-text/50 transition-all focus:border-fw-primary focus:bg-fw-bg focus:outline-none focus:ring-2 focus:ring-fw-primary/20 sm:text-sm"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -173,14 +173,14 @@ const Register: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="group relative flex w-full justify-center rounded-lg bg-blue-600 py-3 px-4 text-sm font-semibold text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-70"
+            className="group relative flex w-full justify-center rounded-lg bg-fw-primary py-3 px-4 text-sm font-semibold text-fw-bg transition-all hover:bg-fw-primary-hover focus:outline-none focus:ring-2 focus:ring-fw-primary/50 disabled:opacity-70"
           >
             {isLoading ? 'Creating account...' : 'Register'}
           </button>
 
           <div className="text-center text-sm">
-            <span className="text-slate-600">Already have an account? </span>
-            <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700">
+            <span className="text-fw-text opacity-80">Already have an account? </span>
+            <Link to="/login" className="font-semibold text-fw-primary hover:text-fw-primary-hover">
               Sign In
             </Link>
           </div>

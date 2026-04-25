@@ -10,7 +10,7 @@ import { LogOut, User as UserIcon } from 'lucide-react'
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
     'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-200',
+    isActive ? 'bg-fw-primary text-fw-bg' : 'text-fw-text hover:bg-fw-secondary/30',
   ].join(' ')
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -32,8 +32,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <strong className="mr-2 text-base font-bold text-blue-600">FloodWise</strong>
+    <nav className="flex items-center gap-3 border-b border-fw-neutral/30 bg-fw-bg px-4 py-3 shadow-sm">
+      <strong className="mr-2 text-base font-bold text-fw-primary">FloodWise</strong>
       <div className="flex flex-1 gap-2">
         <NavLink to="/" className={navLinkClass}>
           Home
@@ -46,7 +46,7 @@ const Navbar = () => {
       <div className="flex items-center gap-4">
         {user ? (
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-medium text-fw-text">
               <UserIcon className="h-4 w-4" />
               <span>{user.full_name || user.email}</span>
             </div>
@@ -55,19 +55,19 @@ const Navbar = () => {
               className="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="h-4 w-4" />
-              <span>Ieșire</span>
+              <span>Logout</span>
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <NavLink to="/login" className={navLinkClass}>
-              Autentificare
+              Login
             </NavLink>
             <NavLink 
               to="/register" 
-              className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+              className="rounded-md bg-fw-primary px-3 py-1.5 text-sm font-medium text-fw-bg hover:bg-fw-primary-hover transition-colors shadow-sm shadow-fw-primary/20"
             >
-              Înregistrare
+              Register
             </NavLink>
           </div>
         )}
@@ -80,7 +80,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="flex h-dvh flex-col bg-slate-100 text-slate-900">
+        <div className="flex h-dvh flex-col bg-fw-bg text-fw-text">
           <Navbar />
           <main className="flex-1 overflow-hidden flex flex-col">
             <Routes>
@@ -108,10 +108,10 @@ function App() {
 function NotFoundPage() {
   return (
     <main className="px-6 py-8">
-      <h1 className="mb-2 text-2xl font-semibold text-slate-900">Pagina nu există</h1>
-      <p className="text-slate-700">
+      <h1 className="mb-2 text-2xl font-semibold text-fw-text">Pagina nu există</h1>
+      <p className="text-fw-text opacity-80">
         Mergi la{' '}
-        <NavLink className="font-semibold text-blue-700 hover:text-blue-800" to="/">
+        <NavLink className="font-semibold text-fw-primary hover:text-fw-primary-hover" to="/">
           Pagina Principală
         </NavLink>
         .
