@@ -1,197 +1,212 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Droplets, 
   CloudRain, 
+  Mountain, 
   AlertTriangle, 
   TrendingUp, 
   Leaf,
   Waves,
-  Satellite,
-  Navigation,
-  Bell,
-  Thermometer,
-  Wind,
-  Info
+  Calendar
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const [activeAlerts] = useState([
-    { id: 1, title: 'Early Warning: Precipitații Extreme', time: 'Acum 2h', coords: '44.4391° N, 26.0950° E', severity: 'high' },
-    { id: 2, title: 'Alertă Saturație Sol', time: 'Acum 5h', coords: 'Galileo Precision Active', severity: 'medium' }
-  ]);
-
+  // Mock data conform cerințelor
   const stats = {
-    soilMoisture: 42, // Sentinel-1
-    ndvi: 0.78,      // Sentinel-2
-    saturationHistory: [30, 45, 58, 52, 40, 42],
-    weather: {
-      temp: 22,
-      condition: 'Senin',
-      precip: '2mm',
-      wind: '14 km/h'
-    }
+    soilHumidity: 38,
+    floodRisk: 65, // procent
+    plantationRisk: 42, // procent
+    rainfall7Days: "42.5 mm",
+    terrainSlope: "4.8°",
+    // Umiditatea solului pe ultimele 6 luni
+    humidityHistory: [
+      { month: 'Noi', value: 32 },
+      { month: 'Dec', value: 45 },
+      { month: 'Ian', value: 58 },
+      { month: 'Feb', value: 52 },
+      { month: 'Mar', value: 40 },
+      { month: 'Apr', value: 38 },
+    ]
   };
 
+  // Helper pentru desenarea graficului SVG
+  const chartHeight = 120;
   const chartWidth = 500;
-  const chartHeight = 100;
-  const points = stats.saturationHistory.map((val, i) => {
-    const x = (i / (stats.saturationHistory.length - 1)) * chartWidth;
-    const y = chartHeight - (val / 100) * chartHeight;
+  const points = stats.humidityHistory.map((h, i) => {
+    const x = (i / (stats.humidityHistory.length - 1)) * chartWidth;
+    const y = chartHeight - (h.value / 100) * chartHeight;
     return `${x},${y}`;
   }).join(' ');
 
   return (
-    <div className="min-h-full bg-fw-bg p-6 md:p-8 text-fw-text font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* TOP HEADER & ALERTS */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 space-y-2">
-            <h1 className="text-4xl font-black tracking-tight uppercase">
-              Control <span className="text-fw-primary">Satelitar</span>
+    <div className="min-h-full bg-fw-bg p-6 md:p-10 text-fw-text">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter uppercase mb-2">
+              Panou <span className="text-fw-primary">Analitic</span>
             </h1>
-            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest opacity-60">
-              <span className="flex items-center gap-1"><Satellite size={12}/> Sentinel-1/2 Active</span>
-              <span className="flex items-center gap-1 text-fw-primary"><Navigation size={12}/> Galileo Precision: 0.1m</span>
-            </div>
+            <p className="text-fw-text/70 font-bold uppercase text-xs tracking-widest">
+              Sistem de Monitorizare a Riscului Agricol
+            </p>
           </div>
+          <div className="flex items-center gap-2 bg-fw-primary/10 px-4 py-2 rounded-full border border-fw-primary/20">
+            <Calendar size={16} className="text-fw-primary" />
+            <span className="text-xs font-black uppercase">Aprilie 2026</span>
+          </div>
+        </header>
 
-          {/* EARLY WARNING PUSH ALERTS */}
-          <div className="lg:w-96 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-black uppercase mb-2">
-              <Bell size={16} className="text-red-500 animate-bounce" />
-              Early Warning (Push)
+        {/* Risc Principal Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          {/* Riscul de Inundații */}
+          <div className="bg-white/50 backdrop-blur-sm border-2 border-fw-primary/20 p-8 rounded-3xl shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Waves size={120} />
             </div>
-            {activeAlerts.map(alert => (
-              <div key={alert.id} className={`p-3 rounded-xl border-l-4 shadow-sm bg-white/50 flex items-start gap-3 ${
-                alert.severity === 'high' ? 'border-red-500' : 'border-amber-500'
-              }`}>
-                <AlertTriangle size={18} className={alert.severity === 'high' ? 'text-red-500' : 'text-amber-500'} />
-                <div>
-                  <h4 className="text-[11px] font-black uppercase tracking-tight">{alert.title}</h4>
-                  <p className="text-[10px] opacity-60 font-medium">{alert.coords} • {alert.time}</p>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-blue-500 text-white rounded-2xl shadow-lg shadow-blue-500/30">
+                  <Waves size={24} />
                 </div>
+                <h3 className="text-xl font-black uppercase tracking-tight">Risc de Inundație</h3>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* LIVE PARAMETERS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Soil Moisture (Sentinel-1) */}
-          <div className="bg-white rounded-3xl p-6 shadow-xl border border-fw-neutral/10 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <Droplets size={120} />
-            </div>
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
-                <Droplets size={24} />
+              <div className="flex items-baseline gap-2 mb-4">
+                <span className="text-6xl font-black text-blue-600">{stats.floodRisk}%</span>
+                <span className="text-sm font-bold text-fw-text/50 uppercase">Nivel Alertă</span>
               </div>
-              <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-1 rounded-full uppercase">Sentinel-1 Live</span>
-            </div>
-            <p className="text-xs font-bold opacity-50 uppercase mb-1">Umiditate Sol</p>
-            <div className="flex items-baseline gap-2">
-              <h2 className="text-4xl font-black text-fw-text">{stats.soilMoisture}%</h2>
-              <TrendingUp size={16} className="text-green-500" />
-            </div>
-            <div className="mt-4 w-full bg-blue-50 h-2 rounded-full overflow-hidden">
-              <div className="bg-blue-500 h-full rounded-full" style={{ width: `${stats.soilMoisture}%` }} />
+              <div className="w-full bg-fw-neutral/20 h-4 rounded-full overflow-hidden mb-4">
+                <div 
+                  className="bg-blue-600 h-full transition-all duration-1000" 
+                  style={{ width: `${stats.floodRisk}%` }}
+                />
+              </div>
+              <p className="text-sm font-medium leading-relaxed opacity-80">
+                Probabilitate ridicată de deversare în zona sectorului Nord. Se recomandă monitorizarea digurilor secundare.
+              </p>
             </div>
           </div>
 
-          {/* NDVI (Sentinel-2) */}
-          <div className="bg-white rounded-3xl p-6 shadow-xl border border-fw-neutral/10 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity text-fw-primary">
+          {/* Riscul pentru Plantații */}
+          <div className="bg-white/50 backdrop-blur-sm border-2 border-fw-secondary/20 p-8 rounded-3xl shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10 text-fw-secondary">
               <Leaf size={120} />
             </div>
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-fw-primary/10 text-fw-primary rounded-2xl">
-                <Leaf size={24} />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-fw-secondary text-white rounded-2xl shadow-lg shadow-fw-secondary/30">
+                  <Leaf size={24} />
+                </div>
+                <h3 className="text-xl font-black uppercase tracking-tight">Impact Plantații</h3>
               </div>
-              <span className="text-[9px] font-black bg-fw-primary/10 text-fw-primary px-2 py-1 rounded-full uppercase">Sentinel-2 Live</span>
-            </div>
-            <p className="text-xs font-bold opacity-50 uppercase mb-1">Sănătate Vegetație (NDVI)</p>
-            <div className="flex items-baseline gap-2">
-              <h2 className="text-4xl font-black text-fw-text">{stats.ndvi}</h2>
-              <span className="text-xs font-black text-fw-primary uppercase">Optim</span>
-            </div>
-            <div className="mt-4 grid grid-cols-5 gap-1">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className={`h-2 rounded-full ${i <= 4 ? 'bg-fw-primary' : 'bg-fw-neutral/10'}`} />
-              ))}
+              <div className="flex items-baseline gap-2 mb-4">
+                <span className="text-6xl font-black text-fw-secondary">{stats.plantationRisk}%</span>
+                <span className="text-sm font-bold text-fw-text/50 uppercase">Vulnerabilitate</span>
+              </div>
+              <div className="w-full bg-fw-neutral/20 h-4 rounded-full overflow-hidden mb-4">
+                <div 
+                  className="bg-fw-secondary h-full transition-all duration-1000" 
+                  style={{ width: `${stats.plantationRisk}%` }}
+                />
+              </div>
+              <p className="text-sm font-medium leading-relaxed opacity-80">
+                Culturile de grâu și rapiță sunt în zona de impact. Vulnerabilitatea este moderată datorită pantei favorabile.
+              </p>
             </div>
           </div>
-
-          {/* Weather Forecast */}
-          <div className="bg-fw-primary text-white rounded-3xl p-6 shadow-xl relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <CloudRain size={120} />
-            </div>
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-white/20 rounded-2xl">
-                <Thermometer size={24} />
-              </div>
-              <span className="text-[9px] font-black bg-white/20 px-2 py-1 rounded-full uppercase">Hiper-Local</span>
-            </div>
-            <p className="text-xs font-bold opacity-70 uppercase mb-1">Prognoză Fermă</p>
-            <h2 className="text-4xl font-black mb-1">{stats.weather.temp}°C</h2>
-            <div className="flex gap-4 mt-4 text-[10px] font-black uppercase opacity-80">
-              <span className="flex items-center gap-1"><CloudRain size={12}/> {stats.weather.precip}</span>
-              <span className="flex items-center gap-1"><Wind size={12}/> {stats.weather.wind}</span>
-            </div>
-          </div>
-
         </div>
 
-        {/* SATURATION HISTORY CHART */}
-        <div className="bg-white border-2 border-fw-neutral/10 p-8 rounded-3xl shadow-sm">
+        {/* Grafic Umiditate */}
+        <div className="bg-white border-2 border-fw-neutral/10 p-8 rounded-3xl shadow-sm mb-8">
           <div className="flex items-center justify-between mb-8">
-            <div className="space-y-1">
-              <h3 className="font-black uppercase tracking-widest text-sm flex items-center gap-2">
-                <Waves size={18} className="text-blue-500" />
-                Evoluție Saturație Sol
-              </h3>
-              <p className="text-[10px] font-bold opacity-40 uppercase">Analiză istorică pe ultimele luni</p>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <Droplets size={20} />
+              </div>
+              <h3 className="font-black uppercase tracking-widest text-sm">Evoluție Umiditate Sol (6 luni)</h3>
             </div>
-            <button className="text-[10px] font-black uppercase text-fw-primary flex items-center gap-1 border-b-2 border-fw-primary/20 pb-1">
-              Exportă Date CSV
-            </button>
+            <div className="flex items-center gap-1 text-fw-primary font-black text-xs uppercase">
+              <TrendingUp size={14} /> 
+              <span>Monitorizare Live</span>
+            </div>
           </div>
           
           <div className="relative h-[150px] w-full mt-4">
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--theme-primary)" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="var(--theme-primary)" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d={`M 0 ${chartHeight} L ${points} L ${chartWidth} ${chartHeight} Z`} fill="url(#grad)" />
-              <polyline fill="none" stroke="var(--theme-primary)" strokeWidth="3" points={points} />
-              {stats.saturationHistory.map((val, i) => (
-                <circle key={i} cx={(i / (stats.saturationHistory.length - 1)) * chartWidth} cy={chartHeight - (val / 100) * chartHeight} r="4" fill="white" stroke="var(--theme-primary)" strokeWidth="2" />
+            <svg 
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`} 
+              className="w-full h-full overflow-visible"
+              preserveAspectRatio="none"
+            >
+              {/* Grila */}
+              {[0, 25, 50, 75, 100].map(level => (
+                <line 
+                  key={level}
+                  x1="0" y1={chartHeight - (level / 100) * chartHeight} 
+                  x2={chartWidth} y2={chartHeight - (level / 100) * chartHeight}
+                  stroke="var(--theme-neutral)"
+                  strokeOpacity="0.1"
+                  strokeWidth="1"
+                />
               ))}
+              
+              {/* Linia de grafic */}
+              <polyline
+                fill="none"
+                stroke="var(--theme-primary)"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={points}
+              />
+              
+              {/* Punctele de date */}
+              {stats.humidityHistory.map((h, i) => {
+                const x = (i / (stats.humidityHistory.length - 1)) * chartWidth;
+                const y = chartHeight - (h.value / 100) * chartHeight;
+                return (
+                  <circle 
+                    key={i} 
+                    cx={x} cy={y} r="5" 
+                    fill="white" 
+                    stroke="var(--theme-primary)" 
+                    strokeWidth="3" 
+                  />
+                );
+              })}
             </svg>
-            <div className="flex justify-between mt-4 text-[9px] font-black uppercase opacity-30">
-              <span>Noiembrie</span>
-              <span>Decembrie</span>
-              <span>Ianuarie</span>
-              <span>Februarie</span>
-              <span>Martie</span>
-              <span>Aprilie</span>
+            
+            {/* Label-uri luni */}
+            <div className="flex justify-between mt-4">
+              {stats.humidityHistory.map((h, i) => (
+                <span key={i} className="text-[10px] font-black uppercase text-fw-text/40">{h.month}</span>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* INFO FOOTER */}
-        <div className="bg-fw-accent/10 border border-fw-accent/20 p-4 rounded-2xl flex items-center gap-4 text-fw-text/70">
-          <Info size={20} className="text-fw-accent" />
-          <p className="text-[10px] font-bold uppercase tracking-tight">
-            Datele sunt procesate folosind constelația <span className="text-fw-primary">Sentinel</span> și verificate prin rețeaua de senzori IoT la sol cu precizie <span className="text-fw-primary">Galileo</span>.
-          </p>
-        </div>
+        {/* Statistici Suplimentare */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-fw-primary text-white p-6 rounded-2xl flex items-center justify-between shadow-lg shadow-fw-primary/20">
+            <div className="flex items-center gap-4">
+              <CloudRain size={24} />
+              <div>
+                <p className="text-[10px] font-bold uppercase opacity-60">Rainfall (Săptămâna curentă)</p>
+                <p className="text-xl font-black">{stats.rainfall7Days}</p>
+              </div>
+            </div>
+            <AlertTriangle className="text-fw-accent animate-pulse" />
+          </div>
 
+          <div className="bg-fw-text text-fw-bg p-6 rounded-2xl flex items-center justify-between shadow-lg shadow-fw-text/20">
+            <div className="flex items-center gap-4">
+              <Mountain size={24} />
+              <div>
+                <p className="text-[10px] font-bold uppercase opacity-60">Panta Medie Teren</p>
+                <p className="text-xl font-black">{stats.terrainSlope}</p>
+              </div>
+            </div>
+            <div className="bg-fw-accent text-fw-text px-3 py-1 rounded-full text-[10px] font-black uppercase">Optim</div>
+          </div>
+        </div>
       </div>
     </div>
   );

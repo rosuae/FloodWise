@@ -5,13 +5,14 @@ import Dashboard from '../components/Dashboard'
 import Landing from '../components/Landing'
 import Login from '../components/Login'
 import Register from '../components/Register'
+import Dashboard from '../components/Dashboard'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { LogOut, User as UserIcon, Shield } from 'lucide-react'
+import { LogOut, User as UserIcon, Shield, LayoutDashboard, Map as MapIcon } from 'lucide-react'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-    isActive ? 'bg-fw-primary text-fw-bg' : 'text-fw-text hover:bg-fw-secondary/30',
+    'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-bold transition-all',
+    isActive ? 'bg-fw-primary text-fw-bg shadow-sm shadow-fw-primary/20 scale-105' : 'text-fw-text hover:bg-fw-secondary/30',
   ].join(' ')
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -46,7 +47,12 @@ const Navbar = () => {
           Dashboard
         </NavLink>
         <NavLink to="/map" className={navLinkClass}>
+          <MapIcon size={16} />
           Risk Map
+        </NavLink>
+        <NavLink to="/dashboard" className={navLinkClass}>
+          <LayoutDashboard size={16} />
+          Dashboard
         </NavLink>
       </div>
 
@@ -107,6 +113,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RiskMap />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
                   </ProtectedRoute>
                 }
               />
