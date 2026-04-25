@@ -83,7 +83,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-7xl font-black text-blue-600">{stats.floodRisk}%</span>
-                <span className="text-xs font-black text-fw-text uppercase tracking-widest border-b-2 border-blue-600">Nivel Alertă</span>
+                <span className="text-xs font-black text-black uppercase tracking-widest border-b-2 border-blue-600">Nivel Alertă</span>
               </div>
               <div className="w-full bg-blue-100 h-6 rounded-full overflow-hidden mb-6 border-2 border-blue-600">
                 <div 
@@ -111,7 +111,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-7xl font-black text-fw-secondary">{stats.plantationRisk}%</span>
-                <span className="text-xs font-black text-fw-text uppercase tracking-widest border-b-2 border-fw-secondary">Vulnerabilitate</span>
+                <span className="text-xs font-black text-black uppercase tracking-widest border-b-2 border-fw-secondary">Vulnerabilitate</span>
               </div>
               <div className="w-full bg-fw-secondary/10 h-6 rounded-full overflow-hidden mb-6 border-2 border-fw-secondary">
                 <div 
@@ -135,13 +135,13 @@ const Dashboard: React.FC = () => {
               </div>
               <h3 className="font-black uppercase tracking-tighter text-xl text-black">Evoluție Umiditate Sol</h3>
             </div>
-            <div className="flex items-center gap-2 bg-fw-accent text-fw-text px-4 py-1.5 rounded-full font-black text-xs uppercase shadow-sm">
+            <div className="flex items-center gap-2 bg-fw-accent text-black px-4 py-1.5 rounded-full font-black text-xs uppercase shadow-sm">
               <TrendingUp size={16} /> 
               <span>Monitorizare Satelit Active</span>
             </div>
           </div>
           
-          <div className="relative h-[200px] w-full mt-4">
+          <div className="relative h-[220px] w-full mt-4 pb-12">
             <svg 
               viewBox={`0 0 ${chartWidth} ${chartHeight}`} 
               className="w-full h-full overflow-visible"
@@ -187,7 +187,7 @@ const Dashboard: React.FC = () => {
             </svg>
             
             {/* Label-uri luni */}
-            <div className="flex justify-between mt-8 border-t-2 border-fw-neutral/10 pt-4">
+            <div className="flex justify-between mt-6 border-t-2 border-fw-neutral/10 pt-4 px-2">
               {stats.humidityHistory.map((h, i) => (
                 <span key={i} className="text-xs font-black uppercase text-fw-text underline decoration-fw-primary decoration-2">{h.month}</span>
               ))}
@@ -196,7 +196,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Statistici Suplimentare */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           <div className="bg-fw-primary text-fw-bg p-8 rounded-2xl flex items-center justify-between shadow-2xl shadow-fw-primary/40 border-b-8 border-fw-primary-hover">
             <div className="flex items-center gap-6">
               <div className="p-4 bg-fw-bg/20 rounded-2xl">
@@ -220,7 +220,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-4xl font-black">{stats.terrainSlope}</p>
               </div>
             </div>
-            <div className="bg-fw-accent text-fw-text px-4 py-2 rounded-xl text-xs font-black uppercase shadow-lg shadow-fw-accent/20">Status: Optim</div>
+            <div className="bg-fw-accent text-black px-4 py-2 rounded-xl text-xs font-black uppercase shadow-lg shadow-fw-accent/20">Status: Optim</div>
           </div>
         </div>
       </div>

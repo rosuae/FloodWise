@@ -50,23 +50,23 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
       <div className="space-y-5">
         {/* Crop Selection */}
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-xs font-black text-fw-text uppercase tracking-widest">
+          <label className="flex items-center gap-2 text-xs font-black text-black uppercase tracking-widest">
             <Leaf size={14} className="text-fw-primary" /> Tip Cultură
           </label>
           <select 
             value={selectedCropId}
             onChange={(e) => setSelectedCropId(e.target.value)}
-            className="w-full rounded-lg border-2 border-fw-neutral/30 bg-fw-bg px-3 py-2 text-sm font-bold text-fw-text focus:border-fw-primary focus:outline-none"
+            className="w-full rounded-lg border-2 border-fw-neutral/30 bg-white px-3 py-2 text-sm font-bold text-black focus:border-fw-primary focus:outline-none"
           >
             {CROP_DATABASE.map(crop => (
-              <option key={crop.id} value={crop.id} className="text-fw-text font-bold">{crop.name}</option>
+              <option key={crop.id} value={crop.id} className="text-black font-bold">{crop.name}</option>
             ))}
           </select>
         </div>
 
         {/* Area Input */}
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-xs font-black text-fw-text uppercase tracking-widest">
+          <label className="flex items-center gap-2 text-xs font-black text-black uppercase tracking-widest">
             <AlertTriangle size={14} className="text-fw-primary" /> Suprafață
           </label>
           <div className="flex items-center gap-2">
@@ -74,16 +74,16 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
               type="number"
               value={customArea}
               onChange={(e) => setCustomArea(Number(e.target.value))}
-              className="w-full rounded-lg border-2 border-fw-neutral/30 bg-fw-bg px-3 py-2 text-sm font-black text-fw-text focus:border-fw-primary focus:outline-none"
+              className="w-full rounded-lg border-2 border-fw-neutral/30 bg-white px-3 py-2 text-sm font-black text-black focus:border-fw-primary focus:outline-none"
             />
-            <span className="text-sm font-black text-fw-text underline decoration-fw-primary decoration-2">ha</span>
+            <span className="text-sm font-black text-black underline decoration-fw-primary decoration-2">ha</span>
           </div>
         </div>
 
         {/* Duration Slider */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="flex items-center gap-2 text-xs font-black text-fw-text uppercase tracking-widest">
+            <label className="flex items-center gap-2 text-xs font-black text-black uppercase tracking-widest">
               <Clock size={14} className="text-fw-primary" /> Durată Hazard
             </label>
             <span className="text-xs font-black text-fw-primary bg-fw-primary/10 px-2 py-0.5 rounded">{durationDays} zile</span>
@@ -113,7 +113,7 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
           </div>
         </div>
 
-        <div className="text-[9px] text-fw-text/60 font-black leading-tight bg-fw-neutral/5 p-3 rounded-lg border border-fw-neutral/10 uppercase tracking-tighter">
+        <div className="text-[9px] text-black/70 font-black leading-tight bg-fw-neutral/5 p-3 rounded-lg border border-fw-neutral/10 uppercase tracking-tighter">
           Calcul: Expunere (Ha x Valoare) x Hazard x Vulnerabilitate
         </div>
       </div>

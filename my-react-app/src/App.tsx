@@ -72,12 +72,12 @@ const Navbar = () => {
 
               {showAlerts && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-fw-neutral/20 rounded-xl shadow-2xl p-4 z-[100]">
-                  <h4 className="text-xs font-black uppercase text-fw-text/50 mb-3 tracking-widest">Alerte Recente</h4>
+                  <h4 className="text-xs font-black uppercase text-black/50 mb-3 tracking-widest">Alerte Recente</h4>
                   <div className="space-y-3">
                     {alerts.map(alert => (
                       <div key={alert.id} className={`p-3 rounded-lg border-l-4 ${alert.severity === 'high' ? 'bg-red-50 border-red-500' : 'bg-amber-50 border-amber-500'}`}>
-                        <div className="text-xs font-bold text-fw-text">{alert.title}</div>
-                        <div className="text-[10px] text-fw-text/60 mt-1">{alert.time}</div>
+                        <div className="text-xs font-bold text-black">{alert.title}</div>
+                        <div className="text-[10px] text-black/60 mt-1">{alert.time}</div>
                       </div>
                     ))}
                   </div>
