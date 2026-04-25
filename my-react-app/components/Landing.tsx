@@ -1,7 +1,14 @@
 import { Shield, Map, Zap, Database, Satellite, Bell } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../src/context/AuthContext';
 
 const FloodWiseLanding = () => {
+  const { token } = useAuth();
+
+  if (token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-fw-bg text-fw-text font-sans relative transition-colors duration-300">
 

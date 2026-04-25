@@ -66,7 +66,7 @@ const Register: React.FC = () => {
         const userData = await userResponse.json();
 
         login(token, userData);
-        navigate('/map');
+        navigate('/dashboard');
       } else {
         navigate('/login');
       }

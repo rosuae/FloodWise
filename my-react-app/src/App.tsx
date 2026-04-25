@@ -1,6 +1,7 @@
 import './App.css'
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import RiskMap from '../components/RiskMap'
+import Dashboard from '../components/Dashboard'
 import Landing from '../components/Landing'
 import Login from '../components/Login'
 import Register from '../components/Register'
@@ -42,6 +43,9 @@ const Navbar = () => {
       </NavLink>
       
       <div className="flex flex-1 gap-2 border-l border-fw-neutral/20 pl-6">
+        <NavLink to="/dashboard" className={navLinkClass}>
+          Dashboard
+        </NavLink>
         <NavLink to="/map" className={navLinkClass}>
           <MapIcon size={16} />
           Risk Map
@@ -96,6 +100,14 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/map"
                 element={

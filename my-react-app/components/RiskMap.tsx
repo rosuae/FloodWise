@@ -1,8 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Polygon, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, Popup, useMapEvents, Marker, useMap } from 'react-leaflet';
 import type { Map as LeafletMap } from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '@geoman-io/leaflet-geoman-free';
 import EconomicImpactPanel from './EconomicImpactPanel';
+
+// Fix for default marker icon in Leaflet + React
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIconRetina,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 type LatLngTuple = [number, number];
 
@@ -211,9 +226,107 @@ const ViewportFetcher: React.FC<{
   return null;
 };
 
+const MapClickHandler: React.FC<{
+  onLocationSelect: (latlng: L.LatLng) => void;
+}> = ({ onLocationSelect }) => {
+  useMapEvents({
+    click(e) {
+      onLocationSelect(e.latlng);
+    },
+  });
+  return null;
+};
+
+const GeomanControls: React.FC<{
+  onAreaCreated: (areaHectares: number, coordinates: LatLngTuple[]) => void;
+}> = ({ onAreaCreated }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map.pm) return;
+
+    map.pm.addControls({
+      position: 'topleft',
+      drawCircle: false,
+      drawMarker: false,
+      drawCircleMarker: false,
+      drawPolyline: false,
+      drawRectangle: true,
+      drawPolygon: true,
+      editMode: true,
+      dragMode: true,
+      cutLayer: false,
+      removalMode: true,
+    });
+
+    map.pm.setLang('en');
+
+    map.on('pm:create', (e) => {
+      const layer = e.layer as L.Polygon;
+      const coords = layer.getLatLngs()[0] as L.LatLng[];
+      
+      let areaSqm = 0;
+      if (coords.length > 2) {
+        const radius = 6378137;
+        const toRad = Math.PI / 180;
+        
+        for (let i = 0; i < coords.length; i++) {
+          const p1 = coords[i];
+          const p2 = coords[(i + 1) % coords.length];
+          areaSqm += (p2.lng * toRad - p1.lng * toRad) * (2 + Math.sin(p1.lat * toRad) + Math.sin(p2.lat * toRad));
+        }
+        areaSqm = Math.abs(areaSqm * radius * radius / 2);
+      }
+      
+      const areaHectares = areaSqm / 10000;
+      const latLngCoords: LatLngTuple[] = coords.map(c => [c.lat, c.lng] as LatLngTuple);
+      onAreaCreated(areaHectares, latLngCoords);
+      
+      layer.on('click', (ev) => {
+        L.DomEvent.stopPropagation(ev);
+        onAreaCreated(areaHectares, latLngCoords);
+      });
+    });
+
+    return () => {
+      map.pm.removeControls();
+    };
+  }, [map, onAreaCreated]);
+
+  return null;
+};
+
 const FloodRiskMap: React.FC = () => {
   const [polygons, setPolygons] = useState<RiskPolygon[]>([]);
   const [selectedPolygon, setSelectedPolygon] = useState<RiskPolygon | null>(null);
+  const [customMarker, setCustomMarker] = useState<L.LatLng | null>(null);
+
+  const handleAreaCreated = (areaHectares: number, coordinates: LatLngTuple[]) => {
+    const newPolygon: RiskPolygon = {
+      riskValue: 0.4, // Default risk for drawn area
+      coordinates,
+      areaHectares,
+    };
+    setSelectedPolygon(newPolygon);
+    setCustomMarker(null);
+  };
+
+  const handleLocationSelect = (latlng: L.LatLng) => {
+    setCustomMarker(latlng);
+    
+    const virtualPolygon: RiskPolygon = {
+      riskValue: 0.25,
+      coordinates: [
+        [latlng.lat + 0.0005, latlng.lng - 0.0005],
+        [latlng.lat + 0.0005, latlng.lng + 0.0005],
+        [latlng.lat - 0.0005, latlng.lng + 0.0005],
+        [latlng.lat - 0.0005, latlng.lng - 0.0005],
+      ],
+      areaHectares: 1,
+    };
+    
+    setSelectedPolygon(virtualPolygon);
+  };
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
@@ -228,14 +341,29 @@ const FloodRiskMap: React.FC = () => {
         />
 
         <ViewportFetcher onDataLoaded={setPolygons} />
+        <MapClickHandler onLocationSelect={handleLocationSelect} />
+        <GeomanControls onAreaCreated={handleAreaCreated} />
+
+        {customMarker && (
+          <Marker position={customMarker}>
+            <Popup>
+              <div className="p-1">
+                <div className="font-bold text-sm">Punct selectat</div>
+                <div className="text-[10px] text-gray-500">{customMarker.lat.toFixed(4)}, {customMarker.lng.toFixed(4)}</div>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {polygons.map((polygon, index) => (
           <Polygon
             key={index}
             positions={polygon.coordinates}
             eventHandlers={{
-              click: () => {
+              click: (e) => {
+                L.DomEvent.stopPropagation(e);
                 setSelectedPolygon(polygon);
+                setCustomMarker(null);
               },
             }}
             pathOptions={{
