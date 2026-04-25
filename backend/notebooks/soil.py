@@ -67,10 +67,18 @@ def get_soil_moisture_data(bbox, startDate, endDate):
     response = requests.post(url, headers=headers, json=payload)
     return response.content
 
-def fetchSoilMoisture(bbox, startDate, endDate):
+def pointToBox(lon, lat, size=0.1):
+    half_size = size / 2
+    min_lon = lon - half_size
+    max_lon = lon + half_size
+    min_lat = lat - half_size
+    max_lat = lat + half_size
+    return [min_lon, min_lat, max_lon, max_lat]
+
+def fetchSoilMoisture(lon, lat, startDate, endDate):
 
     # Format expected by get_soil_moisture_data -> [min_lon, min_lat, max_lon, max_lat]
-    bbox = [27.773266, 45.603116, 27.817726, 45.649563]
+    bbox = pointToBox(lon, lat)
 
     from io import BytesIO
     import numpy as np
@@ -117,7 +125,7 @@ def fetchSoilMoisture(bbox, startDate, endDate):
     # print(f"Umiditate Medie Sol: {average_moisture:.2f}%")
     # print("-" * 30)
 
-    # # 5. Vizualizare
+    # 5. Vizualizare
     # valid = moisture_map[np.isfinite(moisture_map)]
     # vmin, vmax = np.percentile(valid, [2, 98])
 
