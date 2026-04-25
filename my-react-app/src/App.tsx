@@ -82,7 +82,7 @@ function App() {
       <BrowserRouter>
         <div className="flex h-dvh flex-col bg-fw-bg text-fw-text">
           <Navbar />
-          <main className="flex-1 overflow-hidden flex flex-col">
+          <main className="flex-1 overflow-y-auto flex flex-col">
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
