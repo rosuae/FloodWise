@@ -37,6 +37,12 @@ Built for the [ESA / EU Space Hackathon Challenge #3 — Disaster Risk Monitorin
 
 ## How to run
 
+### Build
+```bash
+docker compose build
+```
+
+### Run
 ```bash
 docker compose up
 ```
