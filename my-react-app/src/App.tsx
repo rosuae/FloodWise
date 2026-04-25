@@ -5,7 +5,6 @@ import Dashboard from '../components/Dashboard'
 import Landing from '../components/Landing'
 import Login from '../components/Login'
 import Register from '../components/Register'
-import Dashboard from '../components/Dashboard'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LogOut, User as UserIcon, Shield, LayoutDashboard, Map as MapIcon } from 'lucide-react'
 
