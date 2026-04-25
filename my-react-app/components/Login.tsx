@@ -44,7 +44,7 @@ const Login: React.FC = () => {
       const userData = await userResponse.json();
 
       login(token, userData);
-      navigate('/map');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {
