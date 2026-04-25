@@ -11,3 +11,7 @@ requests
 pystac-client
 python-dotenv
 tenacity
+cdsapi
+xarray
+cfgrib
+eccodes
