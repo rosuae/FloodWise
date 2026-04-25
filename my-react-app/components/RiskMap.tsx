@@ -194,12 +194,12 @@ const ViewportFetcher: React.FC<{
 
         const payload = (await response.json()) as unknown;
         const data = normalizeRiskPayload(payload);
-        console.log('Date de risc încărcate:', data);
+        console.log('Risk data loaded:', data);
         onDataLoaded(data);
       } catch (error) {
-        // Ignorăm erorile de abort când utilizatorul mișcă rapid harta.
+        // Ignore abort errors when user moves the map quickly
         if ((error as Error).name !== 'AbortError') {
-          console.error('Eroare la încărcarea datelor de risc:', error);
+          console.error('Error loading risk data:', error);
         }
       }
     },
@@ -348,7 +348,7 @@ const FloodRiskMap: React.FC = () => {
           <Marker position={customMarker}>
             <Popup>
               <div className="p-1">
-                <div className="font-bold text-sm">Punct selectat</div>
+                <div className="font-bold text-sm">Selected Point</div>
                 <div className="text-[10px] text-gray-500">{customMarker.lat.toFixed(4)}, {customMarker.lng.toFixed(4)}</div>
               </div>
             </Popup>
@@ -375,8 +375,8 @@ const FloodRiskMap: React.FC = () => {
           >
             <Popup>
               <div className="p-1">
-                <div className="font-bold text-sm mb-1">Zonă de risc: {(polygon.riskValue * 100).toFixed(0)}%</div>
-                <div className="text-xs text-gray-600">Suprafață: {polygon.areaHectares.toFixed(1)} ha</div>
+                <div className="font-bold text-sm mb-1">Risk Zone: {(polygon.riskValue * 100).toFixed(0)}%</div>
+                <div className="text-xs text-gray-600">Area: {polygon.areaHectares.toFixed(1)} ha</div>
               </div>
             </Popup>
           </Polygon>

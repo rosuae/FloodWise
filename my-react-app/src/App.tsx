@@ -18,7 +18,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
 
-  if (loading) return <div className="flex h-screen items-center justify-center">Încărcare...</div>;
+  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
   if (!token) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
@@ -35,8 +35,8 @@ const Navbar = () => {
   };
 
   const alerts = [
-    { id: 1, title: 'Early Warning: Precipitații Extreme', time: 'Acum 2h', severity: 'high' },
-    { id: 2, title: 'Alertă Saturație Sol', time: 'Acum 5h', severity: 'medium' }
+    { id: 1, title: 'Early Warning: Extreme Rainfall', time: '2h ago', severity: 'high' },
+    { id: 2, title: 'Soil Saturation Alert', time: '5h ago', severity: 'medium' }
   ];
 
   return (
@@ -73,7 +73,7 @@ const Navbar = () => {
 
               {showAlerts && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-fw-neutral/20 rounded-xl shadow-2xl p-4 z-[100]">
-                  <h4 className="text-xs font-black uppercase text-black/50 mb-3 tracking-widest">Alerte Recente</h4>
+                  <h4 className="text-xs font-black uppercase text-black/50 mb-3 tracking-widest">Recent Alerts</h4>
                   <div className="space-y-3">
                     {alerts.map(alert => (
                       <div key={alert.id} className={`p-3 rounded-lg border-l-4 ${alert.severity === 'high' ? 'bg-red-50 border-red-500' : 'bg-amber-50 border-amber-500'}`}>
@@ -156,11 +156,11 @@ function App() {
 function NotFoundPage() {
   return (
     <main className="px-6 py-8">
-      <h1 className="mb-2 text-2xl font-semibold text-fw-text uppercase font-black">Pagina nu există</h1>
+      <h1 className="mb-2 text-2xl font-semibold text-fw-text uppercase font-black">Page not found</h1>
       <p className="text-fw-text opacity-80 font-bold">
-        Mergi la{' '}
+        Go to{' '}
         <NavLink className="font-black text-fw-primary hover:text-fw-primary-hover" to="/">
-          Pagina Principală
+          Home Page
         </NavLink>
         .
       </p>

@@ -13,6 +13,7 @@ interface AgriMapProps extends MapContainerProps {
   children?: React.ReactNode;
   showMask?: boolean;
   agriZones?: AgriZone[];
+  onZoneSelect?: (zone: AgriZone) => void;
 }
 
 // Mock CORINE data for demonstration - centrally located for immediate visibility
@@ -54,6 +55,7 @@ const AgriMap: React.FC<AgriMapProps> = ({
   children, 
   showMask = true,
   agriZones = DEFAULT_AGRI_ZONES,
+  onZoneSelect,
   ...mapProps
 }) => {
   const filteredAgriZones = useMemo(() => {
@@ -102,14 +104,20 @@ const AgriMap: React.FC<AgriMapProps> = ({
           <Polygon
             key={zone.id}
             positions={zone.coordinates}
+            eventHandlers={{
+              click: () => {
+                if (onZoneSelect) onZoneSelect(zone);
+              }
+            }}
             pathOptions={{
               fillColor: 'transparent',
               color: '#22c55e', // Green-500
               weight: 2,
               opacity: 0.5,
-              dashArray: '10, 10'
+              dashArray: '10, 10',
+              fill: true,
+              fillOpacity: 0.01
             }}
-            interactive={false}
           />
         ))}
       </Pane>
