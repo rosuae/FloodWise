@@ -37,6 +37,12 @@ Built for the [ESA / EU Space Hackathon Challenge #3 — Disaster Risk Monitorin
 
 ## How to run
 
+### Build
+```bash
+docker compose build
+```
+
+### Run
 ```bash
 copy .env.example .env
 docker compose up
@@ -100,6 +106,11 @@ The initial migration is available in `backend/alembic/versions/20260425_0001_in
 - Do not edit old migration files that are already merged.
 - Run `alembic upgrade head` before starting new backend feature work.
 - Resolve migration conflicts via a merge migration when two branches add revisions in parallel.
+
+### Run for dev
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up
+```
 
 ## Features
 

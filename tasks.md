@@ -38,3 +38,11 @@ Utilă pentru a demonstra cum a învățat AI-ul.
 Time-Slider: O bară cronologică ce permite utilizatorului să vadă cum a evoluat saturația solului în ultimele săptămâni.
 
 Comparare "Înainte și După": Vizualizarea modului în care solul a reacționat la evenimente de inundații trecute (ex: iarna 2015/2016).
+
+---
+
+1. Componenta de Achiziție și Procesare Date (Backend)Aceasta este „inima” sistemului care transformă semnalul satelitar în informație utilă.Sursă Date: Conectare la API-ul Copernicus Data Space Ecosystem pentru a extrage imagini Sentinel-1 (SAR).Procesare Radar: Utilizarea instrumentelor de pe pagina de Tools (precum openEO sau Jupyter Notebooks) pentru a filtra zgomotul și a izola backscatter-ul dielectric al solului.Calcul Index Saturație: Implementarea unei formule care calculează nivelul de umiditate sub suprafață, comparând datele curente cu un baseline istoric (pentru a detecta anomaliile).
+
+2. Componenta de Inteligență Artificială și Predicție (Core Engine)Aici datele brute devin „early warnings”.Model de Clasificare: Un algoritm (ex: Random Forest) antrenat să identifice tiparele de saturație care au precedat inundații istorice (folosind datele de la EO Dashboard).Modul de Prognoză: Integrarea unui API de meteo (precipitații prognozate) cu gradul de saturație detectat pentru a calcula Probabilitatea de Viitură Flash.Corelație Topografică: Suprapunerea hărții de saturație peste un Model Digital de Elevație (DEM) pentru a prezice unde se va acumula apa.
+
+3. Componenta de Vizualizare și Interfață (Frontend Web)Modul în care autoritățile și agricultorii interacționează cu datele.Hartă Interactivă: O interfață web (folosind biblioteci precum Leaflet sau Mapbox) care afișează zonele de risc sub formă de „Heat Map”.Sistem de Alerte: Un dashboard care afișează scorul de risc (ex: 0-100%) și trimite notificări de tip „Early Warning”.Integrare Galileo: Afișarea locațiilor precise ale activelor critice (depozite, utilaje) pentru a planifica rute de evacuare sigure bazate pe datele de poziționare.
