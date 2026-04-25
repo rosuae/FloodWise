@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup, useMapEvents } from 'react-leaflet';
 import type { Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import EconomicImpactPanel from './EconomicImpactPanel';
 
 type LatLngTuple = [number, number];
 
@@ -15,6 +16,7 @@ interface RiskPoint {
 interface RiskPolygon {
   riskValue: number;
   coordinates: LatLngTuple[];
+  areaHectares: number;
 }
 
 interface ApiRiskPolygon {
@@ -47,9 +49,14 @@ const pointToSquarePolygon = (point: RiskPoint): RiskPolygon => {
   const halfSideMeters = point.radiusInMeters;
   const latDelta = metersToLatitudeDegrees(halfSideMeters);
   const lngDelta = metersToLongitudeDegrees(halfSideMeters, point.lat);
+  
+  // Calculate approximate area in hectares: (side in meters)^2 / 10,000
+  const sideMeters = halfSideMeters * 2;
+  const areaHectares = (sideMeters * sideMeters) / 10000;
 
   return {
     riskValue: point.riskValue,
+    areaHectares,
     coordinates: [
       [point.lat + latDelta, point.lng - lngDelta],
       [point.lat + latDelta, point.lng + lngDelta],
@@ -115,6 +122,7 @@ const normalizeRiskPayload = (payload: unknown): RiskPolygon[] => {
         return {
           riskValue: clampRisk(severityToRiskValue(polygon.severity, fallbackRisk)),
           coordinates,
+          areaHectares: polygon.area_hectares || 5, // Default to 5ha if not provided
         };
       })
       .filter((item): item is RiskPolygon => item !== null);
@@ -205,9 +213,10 @@ const ViewportFetcher: React.FC<{
 
 const FloodRiskMap: React.FC = () => {
   const [polygons, setPolygons] = useState<RiskPolygon[]>([]);
+  const [selectedPolygon, setSelectedPolygon] = useState<RiskPolygon | null>(null);
 
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
+    <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
       <MapContainer
         center={[44.4268, 26.1025]}
         zoom={13}
@@ -224,19 +233,32 @@ const FloodRiskMap: React.FC = () => {
           <Polygon
             key={index}
             positions={polygon.coordinates}
+            eventHandlers={{
+              click: () => {
+                setSelectedPolygon(polygon);
+              },
+            }}
             pathOptions={{
               fillColor: getRiskColor(polygon.riskValue),
-              color: getRiskColor(polygon.riskValue),
-              weight: 1,
+              color: selectedPolygon === polygon ? '#ffffff' : getRiskColor(polygon.riskValue),
+              weight: selectedPolygon === polygon ? 3 : 1,
               fillOpacity: 0.5,
             }}
           >
             <Popup>
-              Zonă de risc: {(polygon.riskValue * 100).toFixed(0)}%
+              <div className="p-1">
+                <div className="font-bold text-sm mb-1">Zonă de risc: {(polygon.riskValue * 100).toFixed(0)}%</div>
+                <div className="text-xs text-gray-600">Suprafață: {polygon.areaHectares.toFixed(1)} ha</div>
+              </div>
             </Popup>
           </Polygon>
         ))}
       </MapContainer>
+
+      <EconomicImpactPanel 
+        areaHectares={selectedPolygon?.areaHectares || 10}
+        riskProbability={selectedPolygon?.riskValue || 0.5}
+      />
     </div>
   );
 };
