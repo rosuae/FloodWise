@@ -1,6 +1,7 @@
 ARG NODE_VERSION=24.14.0-alpine
 FROM node:${NODE_VERSION}
 
+# Setam directorul de lucru
 WORKDIR /app
 
 # Copiem fisierele de dependinte
