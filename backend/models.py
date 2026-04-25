@@ -53,3 +53,13 @@ class AlertSubscription(Base):
     min_risk_level: Mapped[str] = mapped_column(String(32), nullable=False)
     url: Mapped[str] = mapped_column(String(1024), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
