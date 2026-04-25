@@ -47,6 +47,11 @@ docker compose build
 docker compose up
 ```
 
+### Run for dev
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up
+```
+
 ## Features
 
 - **Flood risk mapping** — per-area risk scores updated on ingestion of new satellite data

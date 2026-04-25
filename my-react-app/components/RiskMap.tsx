@@ -11,8 +11,8 @@ interface RiskPoint {
 }
 
 const getRiskColor = (risk: number): string => {
-  if (risk >= 0.8) return '#023858';
-  if (risk >= 0.5) return '#3690c0';
+  if (risk >= 0.8) return '#d12a2a';
+  if (risk >= 0.5) return '#023858';
   return '#a6bddb';
 };
 
