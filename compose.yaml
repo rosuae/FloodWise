@@ -19,6 +19,10 @@ services:
   backend:
     build:
       context: ./backend
+    volumes:
+      - ./backend:/app
+    # Folosim comanda din Dockerfile sau o suprascriem fara instalari inutile
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
@@ -27,17 +31,31 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   frontend:
     build:
       context: ./my-react-app
+    volumes:
+      - ./my-react-app:/app
+      - /app/node_modules
+    # Am scos npm install de aici, Dockerfile se ocupa de asta la build
+    command: npm run dev -- --host 0.0.0.0 --port 5173
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
