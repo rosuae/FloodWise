@@ -1,4 +1,5 @@
 import { Shield, Map, Zap, Database, Satellite, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const FloodWiseLanding = () => {
   return (
@@ -31,9 +32,9 @@ const FloodWiseLanding = () => {
           <a href="#data" className="hover:text-blue-600 transition">Data Sources</a>
           <a href="#api" className="hover:text-blue-600 transition">API</a>
         </div>
-        <a href="/map" className="bg-slate-900 text-white px-5 py-2.5 rounded-full font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-200">
+        <Link to="/map" className="bg-slate-900 text-white px-5 py-2.5 rounded-full font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-200">
           Open Dashboard
-        </a>
+        </Link>
       </nav>
 
       {/* Hero Section */}
@@ -51,9 +52,9 @@ const FloodWiseLanding = () => {
         </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-200">
+          <Link to="/register" className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-200 text-center">
             Get Started
-          </button>
+          </Link>
           <button className="px-8 py-4 bg-white border border-slate-200 rounded-xl font-bold text-lg hover:border-blue-400 transition">
             View Docs
           </button>
