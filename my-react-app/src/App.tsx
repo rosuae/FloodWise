@@ -5,7 +5,7 @@ import Landing from '../components/Landing'
 import Login from '../components/Login'
 import Register from '../components/Register'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { LogOut, User as UserIcon } from 'lucide-react'
+import { LogOut, User as UserIcon, Shield } from 'lucide-react'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -15,10 +15,10 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, loading } = useAuth();
-  
+
   if (loading) return <div className="flex h-screen items-center justify-center">Încărcare...</div>;
   if (!token) return <Navigate to="/login" replace />;
-  
+
   return <>{children}</>;
 };
 
@@ -32,17 +32,20 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center gap-3 border-b border-fw-neutral/30 bg-fw-bg px-4 py-3 shadow-sm">
-      <strong className="mr-2 text-base font-bold text-fw-primary">FloodWise</strong>
-      <div className="flex flex-1 gap-2">
-        <NavLink to="/" className={navLinkClass}>
-          Home
-        </NavLink>
+    <nav className="flex items-center gap-6 border-b border-fw-neutral/30 bg-fw-bg px-6 py-4 shadow-sm">
+      <NavLink to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+        <div className="w-8 h-8 bg-fw-primary rounded-lg flex items-center justify-center shadow-sm">
+          <Shield className="text-fw-bg" size={18} />
+        </div>
+        <span className="text-xl font-bold tracking-tight text-fw-text">Flood<span className="text-fw-primary">Wise</span></span>
+      </NavLink>
+      
+      <div className="flex flex-1 gap-2 border-l border-fw-neutral/20 pl-6">
         <NavLink to="/map" className={navLinkClass}>
           Risk Map
         </NavLink>
       </div>
-      
+
       <div className="flex items-center gap-4">
         {user ? (
           <div className="flex items-center gap-3">
@@ -63,8 +66,8 @@ const Navbar = () => {
             <NavLink to="/login" className={navLinkClass}>
               Login
             </NavLink>
-            <NavLink 
-              to="/register" 
+            <NavLink
+              to="/register"
               className="rounded-md bg-fw-primary px-3 py-1.5 text-sm font-medium text-fw-bg hover:bg-fw-primary-hover transition-colors shadow-sm shadow-fw-primary/20"
             >
               Register
@@ -87,13 +90,13 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route 
-                path="/map" 
+              <Route
+                path="/map"
                 element={
                   <ProtectedRoute>
                     <RiskMap />
                   </ProtectedRoute>
-                } 
+                }
               />
               <Route path="/home" element={<Navigate to="/" replace />} />
               <Route path="*" element={<NotFoundPage />} />
