@@ -12,20 +12,23 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 function App() {
   return (
     <BrowserRouter>
-      <div className="flex h-dvh flex-col bg-slate-100 text-slate-900">
-        <nav className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
-          <strong className="mr-2 text-base font-bold">FloodWise</strong>
-          <NavLink to="/" className={navLinkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/map" className={navLinkClass}>
-            Risk Map
-          </NavLink>
-        </nav>
 
-        <div className="min-h-0 flex-1">
+      <Routes>
+        <Route path="/" element={<Landing />} />
+      </Routes>
+
+      <div className="min-h-0 flex-1">
+        <div className="flex h-dvh flex-col bg-slate-100 text-slate-900">
+          <nav className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <strong className="mr-2 text-base font-bold">FloodWise</strong>
+            <NavLink to="/" className={navLinkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/map" className={navLinkClass}>
+              Risk Map
+            </NavLink>
+          </nav>
           <Routes>
-            <Route path="/" element={<Landing />} />
             <Route path="/map" element={<RiskMap />} />
             <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFoundPage />} />

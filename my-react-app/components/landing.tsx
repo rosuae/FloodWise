@@ -31,9 +31,9 @@ const FloodWiseLanding = () => {
           <a href="#data" className="hover:text-blue-600 transition">Data Sources</a>
           <a href="#api" className="hover:text-blue-600 transition">API</a>
         </div>
-        <button className="bg-slate-900 text-white px-5 py-2.5 rounded-full font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-200">
+        <a href="/map" className="bg-slate-900 text-white px-5 py-2.5 rounded-full font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-200">
           Open Dashboard
-        </button>
+        </a>
       </nav>
 
       {/* Hero Section */}
