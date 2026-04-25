@@ -90,17 +90,115 @@ p {
   margin: 0;
 }
 
-code,
-.counter {
+code {
   font-family: var(--mono);
   display: inline-flex;
   border-radius: 4px;
   color: var(--text-h);
-}
-
-code {
   font-size: 15px;
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* --- MODERN BLUE MAP CONTROLS --- */
+
+.leaflet-control-geoman {
+  border: 3px solid #0056b3 !important; /* Blue border */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  background: #007bff !important; /* Vibrant Blue */
+}
+
+.leaflet-control-geoman .leaflet-buttons-control-button {
+  width: 48px !important;
+  height: 48px !important;
+  background-color: #007bff !important; /* Blue */
+  border: none !important;
+  border-bottom: 1px solid rgba(255,255,255,0.2) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  position: relative !important;
+}
+
+.leaflet-control-geoman .leaflet-buttons-control-button:hover {
+  background-color: #0056b3 !important;
+}
+
+.leaflet-control-geoman .leaflet-buttons-control-button.active {
+  background-color: #ffc107 !important; /* Orange/Yellow when active */
+}
+
+/* Clear Symbols using ::before */
+.leaflet-buttons-control-button::before {
+  font-family: Arial, sans-serif !important;
+  font-size: 22px !important;
+  color: white !important;
+  display: block !important;
+  font-weight: bold !important;
+}
+
+.leaflet-buttons-control-button.active::before {
+  color: #000 !important;
+}
+
+/* Assigning specific symbols to buttons based on their class or title */
+.leaflet-buttons-control-button.leaflet-pm-icon-polygon::before,
+.leaflet-buttons-control-button[title*="Polygon"]::before { content: "⬢"; }
+
+.leaflet-buttons-control-button.leaflet-pm-icon-rectangle::before,
+.leaflet-buttons-control-button[title*="Rectangle"]::before { content: "█"; }
+
+.leaflet-buttons-control-button.leaflet-pm-icon-edit::before,
+.leaflet-buttons-control-button[title*="Edit"]::before { content: "✎"; }
+
+.leaflet-buttons-control-button.leaflet-pm-icon-drag::before,
+.leaflet-buttons-control-button[title*="Drag"]::before { content: "✥"; }
+
+.leaflet-buttons-control-button.leaflet-pm-icon-delete::before,
+.leaflet-buttons-control-button[title*="Removal"]::before,
+.leaflet-buttons-control-button[title*="Delete"]::before { content: "🗑"; }
+
+/* Force hide old broken icons */
+.leaflet-pm-icon, .control-icon {
+  display: none !important;
+}
+
+/* Hover Tooltips */
+.leaflet-control-geoman .leaflet-buttons-control-button:hover:after {
+  content: attr(title);
+  position: absolute;
+  left: 58px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #343a40;
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  font-weight: bold;
+  z-index: 10000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Zoom controls styling to match */
+.leaflet-control-zoom {
+  border: 3px solid #0056b3 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  width: 48px !important;
+  height: 48px !important;
+  background-color: #007bff !important;
+  color: white !important;
+  border: none !important;
+  font-size: 22px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 }

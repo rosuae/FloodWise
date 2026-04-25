@@ -40,7 +40,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="flex items-center gap-6 border-b border-fw-neutral/30 bg-fw-bg px-6 py-4 shadow-sm relative z-50">
+    <nav className="flex items-center gap-6 border-b border-fw-neutral/30 bg-fw-bg px-6 py-4 shadow-sm relative z-[1001]">
       <NavLink to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
         <div className="w-8 h-8 bg-fw-primary rounded-lg flex items-center justify-center shadow-sm">
           <Shield className="text-fw-bg" size={18} />
@@ -72,7 +72,7 @@ const Navbar = () => {
               </button>
 
               {showAlerts && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-fw-neutral/20 rounded-xl shadow-2xl p-4 z-[100]">
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-fw-neutral/20 rounded-xl shadow-2xl p-4 z-[1100]">
                   <h4 className="text-xs font-black uppercase text-black/50 mb-3 tracking-widest">Recent Alerts</h4>
                   <div className="space-y-3">
                     {alerts.map(alert => (
