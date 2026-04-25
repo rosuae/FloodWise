@@ -1,5 +1,6 @@
-import React from 'react';
-import { MapContainer, TileLayer, Circle, Popup } from 'react-leaflet';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Circle, Popup, useMapEvents } from 'react-leaflet';
+import type { Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 interface RiskPoint {
@@ -15,21 +16,67 @@ const getRiskColor = (risk: number): string => {
   return '#a6bddb';
 };
 
-const FloodRiskMap: React.FC = () => {
-  const points: RiskPoint[] = [
-    { 
-      lat: 44.4268, 
-      lng: 26.1025, 
-      riskValue: 0.9, 
-      radiusInMeters: 500 // Acoperă o rază de 500m pe pământ
+const ViewportFetcher: React.FC<{
+  onDataLoaded: (points: RiskPoint[]) => void;
+}> = ({ onDataLoaded }) => {
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchVisibleArea = useCallback(
+    async (map: LeafletMap) => {
+      const bounds = map.getBounds();
+      const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        const response = await fetch(`/api/flood-risks?bbox=${encodeURIComponent(bbox)}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data: RiskPoint[] = await response.json();
+        console.log('Date de risc încărcate:', data);
+        onDataLoaded(data);
+      } catch (error) {
+        // Ignorăm erorile de abort când utilizatorul mișcă rapid harta.
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Eroare la încărcarea datelor de risc:', error);
+        }
+      }
     },
-    { 
-      lat: 44.4350, 
-      lng: 26.1150, 
-      riskValue: 0.4, 
-      radiusInMeters: 300 
-    }
-  ];
+    [onDataLoaded]
+  );
+
+  const map = useMapEvents({
+    moveend: () => {
+      void fetchVisibleArea(map);
+    },
+    zoomend: () => {
+      void fetchVisibleArea(map);
+    },
+  });
+
+  useEffect(() => {
+    void fetchVisibleArea(map);
+
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, [map, fetchVisibleArea]);
+
+  return null;
+};
+
+const FloodRiskMap: React.FC = () => {
+  const [points, setPoints] = useState<RiskPoint[]>([]);
 
   return (
     <div style={{ height: '100vh', width: '100%' }}>
@@ -43,7 +90,9 @@ const FloodRiskMap: React.FC = () => {
           attribution='&copy; OpenStreetMap contributors'
         />
 
-        {Array.from(points, (point, index) => (
+        <ViewportFetcher onDataLoaded={setPoints} />
+
+        {points.map((point, index) => (
           <Circle
             key={index}
             center={[point.lat, point.lng]}
