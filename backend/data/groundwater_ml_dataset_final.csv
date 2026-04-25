@@ -1,0 +1,2 @@
+ID_Statie,Lat,Lon,Data,Inundatie_Target,argila_pct,altitudine_m,panta_grade,conductivitate_hidraulica_m_zi,precip_event_day_mm,precip_last_7d_mm,soil_moisture_surface_pct,sentinel1_product_id,sentinel1_product_name,sentinel1_start_utc,sentinel1_download_url,era5_latest_product_name
+SYN001,50.72,-2.59,2020-02-16,1,23.1,120.0,5.0,3.2,,,,0ae6691b-1bcf-4d40-a181-6b7eb8a0fb8c,S1A_IW_GRDH_1SDV_20200214T175733_20200214T175758_031252_03982F_AD96_COG.SAFE,2020-02-14T17:57:33.468000Z,https://zipper.dataspace.copernicus.eu/odata/v1/Products(0ae6691b-1bcf-4d40-a181-6b7eb8a0fb8c)/$value,

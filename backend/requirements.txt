@@ -1,10 +1,13 @@
 fastapi
 uvicorn
+pandas
 rasterio
 numpy
 geopandas
+pyproj
 rioxarray
 shapely
 requests
 pystac-client
 python-dotenv
+tenacity
