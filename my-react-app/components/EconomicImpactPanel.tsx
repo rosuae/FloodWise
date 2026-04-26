@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingDown, AlertTriangle, DollarSign, Clock, Leaf, LayoutDashboard, Bookmark, Check } from 'lucide-react';
+import { TrendingDown, AlertTriangle, DollarSign, Clock, Leaf, LayoutDashboard, Bookmark, Check, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../src/context/AuthContext';
 
 interface CropData {
   id: string;
@@ -21,17 +22,21 @@ const CROP_DATABASE: CropData[] = [
 interface EconomicImpactPanelProps {
   areaHectares?: number;
   riskProbability?: number; // 0-1
+  coordinates?: [number, number][];
   onImpactChange?: (data: { crop: string; loss: number; area: number }) => void;
 }
 
 const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({ 
   areaHectares = 10, 
   riskProbability = 0.5,
+  coordinates,
   onImpactChange
 }) => {
+  const { token } = useAuth();
   const [selectedCropId, setSelectedCropId] = useState(CROP_DATABASE[0].id);
   const [durationDays, setDurationDays] = useState(3);
   const [customArea, setCustomArea] = useState(areaHectares);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const navigate = useNavigate();
   
@@ -56,40 +61,76 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
     }
   }, [selectedCrop.name, financialLoss, customArea, onImpactChange]);
 
-  const handleGoToDashboard = () => {
+  const getSimulatedStats = () => {
+    // These are passed for display if no real data is available, but also saved to DB
+    const simulatedRainfall = (riskProbability * 80 + Math.random() * 20).toFixed(1);
+    const simulatedSlope = (riskProbability > 0.5 ? Math.random() * 5 : Math.random() * 15 + 5).toFixed(1);
+    return { simulatedRainfall, simulatedSlope };
+  };
+
+  const saveZoneToBackend = async () => {
+    if (!token || !coordinates) return null;
+    setIsSaving(true);
+    const { simulatedRainfall, simulatedSlope } = getSimulatedStats();
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/zones', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: `${selectedCrop.name} field - ${customArea}ha`,
+          coordinates: coordinates,
+          area_ha: customArea,
+          crop_type: selectedCrop.name,
+          risk_percent: Math.round(riskProbability * 100),
+          estimated_loss: Math.round(financialLoss),
+          rainfall_mm: parseFloat(simulatedRainfall),
+          slope_deg: parseFloat(simulatedSlope)
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to save zone');
+      
+      const savedZone = await response.json();
+      setIsSaved(true);
+      // We don't automatically reset isSaved here to prevent user from clicking "Save" again on the same exact data
+      return savedZone;
+    } catch (error) {
+      console.error('Error saving zone:', error);
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleGoToDashboard = async () => {
+    // If we just saved it manually, we already have the state. 
+    // But most users will click "Dashboard" directly.
+    // To avoid creating a zone AND THEN another one if they click "Save", 
+    // we'll just navigate with query params for the "Live" view, 
+    // and they can save it once they are sure from the Map.
+    
+    const { simulatedRainfall, simulatedSlope } = getSimulatedStats();
+    const simulatedNdwi = (riskProbability * 0.8 + (Math.random() * 0.2)).toFixed(2);
     const params = new URLSearchParams({
       area: customArea.toString(),
       risk: (riskProbability * 100).toFixed(0),
       crop: selectedCrop.name,
-      loss: Math.round(financialLoss).toString()
+      loss: Math.round(financialLoss).toString(),
+      ndwi: simulatedNdwi,
+      rainfall: simulatedRainfall,
+      slope: simulatedSlope
     });
     navigate(`/dashboard?${params.toString()}`);
   };
 
   const handleSaveLocation = () => {
-    const newLocation = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: `${selectedCrop.name} field - ${customArea}ha`,
-      area: customArea.toString(),
-      risk: (riskProbability * 100).toFixed(0),
-      crop: selectedCrop.name,
-      loss: Math.round(financialLoss).toString()
-    };
-
-    const saved = localStorage.getItem('fw_saved_locations');
-    let savedArray = [];
-    if (saved) {
-      try {
-        savedArray = JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved locations', e);
-      }
+    if (!isSaved && !isSaving) {
+      saveZoneToBackend();
     }
-    
-    savedArray.push(newLocation);
-    localStorage.setItem('fw_saved_locations', JSON.stringify(savedArray));
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
   };
 
   return (
@@ -168,18 +209,19 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={handleGoToDashboard}
-            className="flex items-center justify-center gap-2 bg-fw-secondary text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform"
+            disabled={isSaving}
+            className="flex items-center justify-center gap-2 bg-fw-secondary text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100"
           >
-            <LayoutDashboard size={14} />
-            Dashboard
+            {isSaving ? <Activity size={14} className="animate-spin" /> : <LayoutDashboard size={14} />}
+            {isSaving ? 'Processing...' : 'Dashboard'}
           </button>
           <button
             onClick={handleSaveLocation}
-            disabled={isSaved}
-            className={`flex items-center justify-center gap-2 ${isSaved ? 'bg-green-600' : 'bg-black'} text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform disabled:scale-100`}
+            disabled={isSaved || isSaving}
+            className={`flex items-center justify-center gap-2 ${isSaved ? 'bg-green-600' : 'bg-black'} text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform disabled:scale-100 disabled:opacity-50`}
           >
-            {isSaved ? <Check size={14} /> : <Bookmark size={14} />}
-            {isSaved ? 'Saved' : 'Save Zone'}
+            {isSaving ? <Activity size={14} className="animate-spin" /> : (isSaved ? <Check size={14} /> : <Bookmark size={14} />)}
+            {isSaving ? 'Saving...' : (isSaved ? 'Saved' : 'Save Zone')}
           </button>
         </div>
 
