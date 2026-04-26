@@ -3,12 +3,14 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta, timezone
 import math
+import pandas as pd
+import time
 
 # Configurare din .env [cite: 60]
 load_dotenv()
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+CLIENT_ID = os.getenv("COPERNICUS_CLIENT_ID")
+CLIENT_SECRET = os.getenv("COPERNICUS_CLIENT_SECRET")
 
 
 def normalize_iso8601_utc(value: str) -> str:
@@ -275,3 +277,81 @@ def fetchSoilMoisture(lon, lat, endDate, initialRangeDays=3, stepDays=30, maxRan
     # raise RuntimeError("Max retries exceeded: no valid pixels found for the selected area and period.")
 
 # fetchSoilMoisture(45.575496, 27.76228, "2026-04-25T23:59:59Z")
+def process_soil_moisture_csv(
+    input_csv="data/raw/evenimente_baza.csv", 
+    output_csv="data/groundwater_ml_dataset_final.csv",
+    save_every=5
+):
+    print(f"Încărcare date din: {input_csv}")
+    
+    # 1. Citim CSV-ul de intrare
+    df_input = pd.read_csv(input_csv)
+    
+    # 2. Verificam daca output-ul exista deja pentru a putea da "resume"
+    if os.path.exists(output_csv):
+        df_output = pd.read_csv(output_csv)
+        print(f"Fișier output existent găsit cu {len(df_output)} rânduri. Modul Resume activat.")
+    else:
+        df_output = df_input.copy()
+        # Adaugam coloanele noi daca nu exista
+        if "Inundatie_Target" not in df_output.columns:
+            df_output["Inundatie_Target"] = 1 # Presupunem 1 pentru evenimente confirmate, ajusteaza daca e nevoie
+        if "soil_moisture_surface_pct" not in df_output.columns:
+            df_output["soil_moisture_surface_pct"] = pd.NA
+            
+    # 3. Găsim rândurile care nu au fost încă procesate (unde soil_moisture este null)
+    mask_unprocessed = df_output["soil_moisture_surface_pct"].isna()
+    indices_to_process = df_output[mask_unprocessed].index
+    
+    total = len(indices_to_process)
+    if total == 0:
+        print("Toate rândurile au fost deja procesate!")
+        return
+
+    print(f"Rânduri rămase de procesat: {total}")
+    
+    # 4. Procesam fiecare rand
+    processed_count = 0
+    for idx in indices_to_process:
+        row = df_output.loc[idx]
+        station_id = row["ID_Statie"]
+        lat = float(row["Lat"])
+        lon = float(row["Lon"])
+        
+        # Formatam data din YYYY-MM-DD in formatul asteptat de API: YYYY-MM-DDTHH:MM:SSZ
+        raw_date = str(row["Data"]).strip()
+        if "T" not in raw_date:
+            formatted_date = f"{raw_date}T23:59:59Z"
+        else:
+            formatted_date = raw_date
+            
+        print(f"\n[{processed_count + 1}/{total}] Procesare {station_id} | Lat: {lat}, Lon: {lon}, Data: {formatted_date}")
+        
+        try:
+            # Apelam functia ta (interval initial 3 zile, urcat la max 90)
+            moisture_val = fetchSoilMoisture(lon, lat, formatted_date, initialRangeDays=3, stepDays=30, maxRangeDays=90)
+            
+            # Salvam rezultatul in dataframe
+            df_output.at[idx, "soil_moisture_surface_pct"] = moisture_val
+            print(f"-> Succes: {moisture_val:.2f}%")
+            
+        except Exception as e:
+            print(f"-> Eșec pentru {station_id}: {e}")
+            # Lasam pd.NA pentru a fi preluat la o rulare ulterioara
+            
+        processed_count += 1
+        
+        # 5. Salvam progresul in batch-uri pentru a nu pierde date la crash-uri
+        if processed_count % save_every == 0 or processed_count == total:
+            df_output.to_csv(output_csv, index=False)
+            print(f"--- Progres salvat în {output_csv} ---")
+
+    print("\nProcesare completă finalizată!")
+
+# === RULAREA SCRIPTULUI ===
+if __name__ == "__main__":
+    # Ajusteaza path-urile conform structurii tale de foldere
+    input_path = "backend/data/raw/evenimente_baza.csv" # Inlocuieste cu fisierul tau real
+    output_path = "backend/data/groundwater_ml_dataset_final.csv"
+    
+    process_soil_moisture_csv(input_csv=input_path, output_csv=output_path)
