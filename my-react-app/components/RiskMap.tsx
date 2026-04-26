@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Polygon, Popup, useMapEvents, Marker, useMap } from 'react-leaflet';
-import type { Map as LeafletMap } from 'leaflet';
+import { MapContainer, TileLayer, Popup, useMapEvents, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
@@ -65,7 +64,7 @@ const pointToSquarePolygon = (point: RiskPoint): RiskPolygon => {
   const halfSideMeters = point.radiusInMeters;
   const latDelta = metersToLatitudeDegrees(halfSideMeters);
   const lngDelta = metersToLongitudeDegrees(halfSideMeters, point.lat);
-  
+
   // Calculate approximate area in hectares: (side in meters)^2 / 10,000
   const sideMeters = halfSideMeters * 2;
   const areaHectares = (sideMeters * sideMeters) / 10000;
@@ -131,8 +130,8 @@ const normalizeRiskPayload = (payload: unknown): RiskPolygon[] => {
           typeof polygon.confidence === 'number'
             ? polygon.confidence
             : typeof response.flood_probability === 'number'
-            ? response.flood_probability
-            : 0.5
+              ? response.flood_probability
+              : 0.5
         );
 
         return {
@@ -230,8 +229,20 @@ const ViewportFetcher: React.FC<{
 const MapClickHandler: React.FC<{
   onLocationSelect: (latlng: L.LatLng) => void;
 }> = ({ onLocationSelect }) => {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
+      // Do not fire when any Geoman tool is active
+      const pm = (map as any).pm;
+      if (pm) {
+        try {
+          if (
+            pm.globalDrawModeEnabled() ||
+            pm.globalEditModeEnabled() ||
+            pm.globalDragModeEnabled() ||
+            pm.globalRemovalModeEnabled()
+          ) return;
+        } catch { /* ignore if methods unavailable */ }
+      }
       onLocationSelect(e.latlng);
     },
   });
@@ -242,36 +253,74 @@ const GeomanControls: React.FC<{
   onAreaCreated: (areaHectares: number, coordinates: LatLngTuple[]) => void;
 }> = ({ onAreaCreated }) => {
   const map = useMap();
+  // Keep latest callback in a ref so the effect never needs to re-run due to it
+  const cbRef = useRef(onAreaCreated);
+  useEffect(() => { cbRef.current = onAreaCreated; }, [onAreaCreated]);
 
   useEffect(() => {
     const pm = map.pm;
     if (!pm) return;
 
+    // --- shared area calculator ---
+    const calcArea = (coords: L.LatLng[]) => {
+      let sqm = 0;
+      if (coords.length > 2) {
+        const R = 6378137, rad = Math.PI / 180;
+        for (let i = 0; i < coords.length; i++) {
+          const p1 = coords[i], p2 = coords[(i + 1) % coords.length];
+          sqm += (p2.lng * rad - p1.lng * rad) * (2 + Math.sin(p1.lat * rad) + Math.sin(p2.lat * rad));
+        }
+        sqm = Math.abs(sqm * R * R / 2);
+      }
+      return {
+        areaHectares: sqm / 10000,
+        latLngCoords: coords.map(c => [c.lat, c.lng] as LatLngTuple),
+      };
+    };
+
+    // --- layer created ---
     const handleCreate = (e: L.LeafletEvent & { layer: L.Layer }) => {
       const layer = e.layer as L.Polygon;
-      const coords = layer.getLatLngs()[0] as L.LatLng[];
-      
-      let areaSqm = 0;
-      if (coords.length > 2) {
-        const radius = 6378137;
-        const toRad = Math.PI / 180;
-        
-        for (let i = 0; i < coords.length; i++) {
-          const p1 = coords[i];
-          const p2 = coords[(i + 1) % coords.length];
-          areaSqm += (p2.lng * toRad - p1.lng * toRad) * (2 + Math.sin(p1.lat * toRad) + Math.sin(p2.lat * toRad));
-        }
-        areaSqm = Math.abs(areaSqm * radius * radius / 2);
-      }
-      
-      const areaHectares = areaSqm / 10000;
-      const latLngCoords: LatLngTuple[] = coords.map(c => [c.lat, c.lng] as LatLngTuple);
-      onAreaCreated(areaHectares, latLngCoords);
-      
+      const { areaHectares, latLngCoords } = calcArea(layer.getLatLngs()[0] as L.LatLng[]);
+      cbRef.current(areaHectares, latLngCoords);
+
+      // Persist edits: fire whenever editing finishes on this layer
+      layer.on('pm:edit', () => {
+        const { areaHectares: a, latLngCoords: c } = calcArea(layer.getLatLngs()[0] as L.LatLng[]);
+        cbRef.current(a, c);
+      });
+
+      // Re-select on click
       layer.on('click', (ev) => {
         L.DomEvent.stopPropagation(ev);
-        onAreaCreated(areaHectares, latLngCoords);
+        const { areaHectares: a, latLngCoords: c } = calcArea(layer.getLatLngs()[0] as L.LatLng[]);
+        cbRef.current(a, c);
       });
+    };
+
+    // --- mutual exclusivity: only one mode active at a time ---
+    const handleDrawStart = () => {
+      try { if (pm.globalEditModeEnabled()) pm.disableGlobalEditMode(); } catch { }
+      try { if (pm.globalDragModeEnabled()) pm.disableGlobalDragMode(); } catch { }
+      try { if (pm.globalRemovalModeEnabled()) pm.disableGlobalRemovalMode(); } catch { }
+    };
+    const handleEditToggle = (e: any) => {
+      if (!e.enabled) return;
+      try { pm.disableDraw(); } catch { }
+      try { if (pm.globalDragModeEnabled()) pm.disableGlobalDragMode(); } catch { }
+      try { if (pm.globalRemovalModeEnabled()) pm.disableGlobalRemovalMode(); } catch { }
+    };
+    const handleDragToggle = (e: any) => {
+      if (!e.enabled) return;
+      try { pm.disableDraw(); } catch { }
+      try { if (pm.globalEditModeEnabled()) pm.disableGlobalEditMode(); } catch { }
+      try { if (pm.globalRemovalModeEnabled()) pm.disableGlobalRemovalMode(); } catch { }
+    };
+    const handleRemovalToggle = (e: any) => {
+      if (!e.enabled) return;
+      try { pm.disableDraw(); } catch { }
+      try { if (pm.globalEditModeEnabled()) pm.disableGlobalEditMode(); } catch { }
+      try { if (pm.globalDragModeEnabled()) pm.disableGlobalDragMode(); } catch { }
     };
 
     pm.addControls({
@@ -286,18 +335,27 @@ const GeomanControls: React.FC<{
       dragMode: true,
       cutLayer: false,
       removalMode: true,
+      rotateMode: false,   // disabled — causes crash
     });
 
     pm.setLang('en');
     pm.setGlobalOptions({ exitModeOnEscape: true });
 
     map.on('pm:create', handleCreate);
+    map.on('pm:drawstart', handleDrawStart as never);
+    map.on('pm:globaleditmodetoggled', handleEditToggle as never);
+    map.on('pm:globaldragmodetoggled', handleDragToggle as never);
+    map.on('pm:globalremovalmodetoggled', handleRemovalToggle as never);
 
     return () => {
       map.off('pm:create', handleCreate);
+      map.off('pm:drawstart', handleDrawStart as never);
+      map.off('pm:globaleditmodetoggled', handleEditToggle as never);
+      map.off('pm:globaldragmodetoggled', handleDragToggle as never);
+      map.off('pm:globalremovalmodetoggled', handleRemovalToggle as never);
       pm.removeControls();
     };
-  }, [map, onAreaCreated]);
+  }, [map]); // ← only 'map' — callback handled via ref above
 
   return null;
 };
@@ -342,25 +400,18 @@ const DrawUndoControls: React.FC = () => {
 };
 
 const FloodRiskMap: React.FC = () => {
-  const [polygons, setPolygons] = useState<RiskPolygon[]>([]);
   const [selectedPolygon, setSelectedPolygon] = useState<RiskPolygon | null>(null);
   const [customMarker, setCustomMarker] = useState<L.LatLng | null>(null);
   const [impactData, setImpactData] = useState<{ crop: string; loss: number; area: number } | null>(null);
 
-  const handleAreaCreated = (areaHectares: number, coordinates: LatLngTuple[]) => {
-    const newPolygon: RiskPolygon = {
-      riskValue: 0.4, // Default risk for drawn area
-      coordinates,
-      areaHectares,
-    };
-    setSelectedPolygon(newPolygon);
+  const handleAreaCreated = useCallback((areaHectares: number, coordinates: LatLngTuple[]) => {
+    setSelectedPolygon({ riskValue: 0.4, coordinates, areaHectares });
     setCustomMarker(null);
-  };
+  }, []);
 
   const handleLocationSelect = (latlng: L.LatLng) => {
     setCustomMarker(latlng);
-    
-    const virtualPolygon: RiskPolygon = {
+    setSelectedPolygon({
       riskValue: 0.25,
       coordinates: [
         [latlng.lat + 0.0005, latlng.lng - 0.0005],
@@ -369,9 +420,7 @@ const FloodRiskMap: React.FC = () => {
         [latlng.lat - 0.0005, latlng.lng - 0.0005],
       ],
       areaHectares: 1,
-    };
-    
-    setSelectedPolygon(virtualPolygon);
+    });
   };
 
   return (
@@ -411,7 +460,6 @@ const FloodRiskMap: React.FC = () => {
           attribution='&copy; OpenStreetMap contributors'
         />
 
-        <ViewportFetcher onDataLoaded={setPolygons} />
         <MapClickHandler onLocationSelect={handleLocationSelect} />
         <GeomanControls onAreaCreated={handleAreaCreated} />
         <DrawUndoControls />
@@ -426,36 +474,9 @@ const FloodRiskMap: React.FC = () => {
             </Popup>
           </Marker>
         )}
-
-        {polygons.map((polygon, index) => (
-          <Polygon
-            key={index}
-            positions={polygon.coordinates}
-            eventHandlers={{
-              click: (e) => {
-                L.DomEvent.stopPropagation(e);
-                setSelectedPolygon(polygon);
-                setCustomMarker(null);
-              },
-            }}
-            pathOptions={{
-              fillColor: getRiskColor(polygon.riskValue),
-              color: selectedPolygon === polygon ? '#ffffff' : getRiskColor(polygon.riskValue),
-              weight: selectedPolygon === polygon ? 3 : 1,
-              fillOpacity: 0.5,
-            }}
-          >
-            <Popup>
-              <div className="p-1">
-                <div className="font-bold text-sm mb-1">Risk Zone: {(polygon.riskValue * 100).toFixed(0)}%</div>
-                <div className="text-xs text-gray-600">Area: {polygon.areaHectares.toFixed(1)} ha</div>
-              </div>
-            </Popup>
-          </Polygon>
-        ))}
       </MapContainer>
 
-      <EconomicImpactPanel 
+      <EconomicImpactPanel
         areaHectares={selectedPolygon?.areaHectares || 10}
         riskProbability={selectedPolygon?.riskValue || 0.5}
         onImpactChange={setImpactData}
