@@ -9,8 +9,6 @@ passlib[bcrypt]
 python-jose[cryptography]
 python-multipart
 bcrypt==4.0.1
-jose
-sqlalchemy.orm
 pandas
 rasterio
 numpy
@@ -20,7 +18,6 @@ rioxarray
 shapely
 requests
 pystac-client
-python-dotenv
 tenacity
 cdsapi
 xarray
@@ -28,4 +25,5 @@ cfgrib
 eccodes
 scikit-learn
 joblib
-scipymatplotlib
+scipy
+matplotlib
