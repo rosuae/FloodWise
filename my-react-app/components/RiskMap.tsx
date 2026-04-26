@@ -4,7 +4,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import EconomicImpactPanel from './EconomicImpactPanel';
-import { Info } from 'lucide-react';
 
 // Fix for default marker icon in Leaflet + React
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -402,7 +401,6 @@ const DrawUndoControls: React.FC = () => {
 const FloodRiskMap: React.FC = () => {
   const [selectedPolygon, setSelectedPolygon] = useState<RiskPolygon | null>(null);
   const [customMarker, setCustomMarker] = useState<L.LatLng | null>(null);
-  const [impactData, setImpactData] = useState<{ crop: string; loss: number; area: number } | null>(null);
 
   const handleAreaCreated = useCallback((areaHectares: number, coordinates: LatLngTuple[]) => {
     setSelectedPolygon({ riskValue: 0.4, coordinates, areaHectares });
@@ -425,31 +423,6 @@ const FloodRiskMap: React.FC = () => {
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
-      {selectedPolygon && impactData && (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[2000] w-full max-w-2xl px-4">
-          <div className="bg-fw-bg/95 backdrop-blur-md border-4 border-fw-accent p-4 rounded-2xl flex items-center gap-4 shadow-2xl animate-in slide-in-from-top duration-300">
-            <div className="bg-fw-accent p-2 rounded-full text-black">
-              <Info size={20} />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-black uppercase text-[10px] text-black/50 tracking-widest">Selected Zone Analysis</h4>
-              <p className="text-sm font-bold text-black">
-                Analyzing an area of <span className="font-black underline decoration-fw-primary decoration-2">{impactData.area} ha</span> with <span className="font-black underline decoration-fw-primary decoration-2">{impactData.crop}</span> crop. 
-                Estimated calculated loss: <span className="font-black text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200 ml-1">{impactData.loss.toLocaleString()} EUR</span>.
-              </p>
-            </div>
-            <button 
-              onClick={() => {
-                setSelectedPolygon(null);
-                setImpactData(null);
-              }}
-              className="text-black/30 hover:text-black transition-colors p-1"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
       <MapContainer
         center={[44.4268, 26.1025]}
         zoom={13}
@@ -479,7 +452,6 @@ const FloodRiskMap: React.FC = () => {
       <EconomicImpactPanel
         areaHectares={selectedPolygon?.areaHectares || 10}
         riskProbability={selectedPolygon?.riskValue || 0.5}
-        onImpactChange={setImpactData}
       />
     </div>
   );
