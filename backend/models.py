@@ -63,3 +63,22 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+class SavedZone(Base):
+    __tablename__ = "saved_zones"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    coordinates: Mapped[str] = mapped_column(Text, nullable=False) # JSON string of coordinates
+    area_ha: Mapped[float] = mapped_column(Float, nullable=False)
+    crop_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    risk_percent: Mapped[float] = mapped_column(Float, nullable=False)
+    estimated_loss: Mapped[float] = mapped_column(Float, nullable=False)
+    latest_ndwi: Mapped[float] = mapped_column(Float, nullable=True)
+    rainfall_mm: Mapped[float] = mapped_column(Float, nullable=True)
+    slope_deg: Mapped[float] = mapped_column(Float, nullable=True)
+    graph_image_b64: Mapped[str] = mapped_column(Text, nullable=True) # Base64 encoded PNG
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    user: Mapped[User] = relationship("User")

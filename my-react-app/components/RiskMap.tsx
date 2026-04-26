@@ -452,6 +452,7 @@ const FloodRiskMap: React.FC = () => {
       <EconomicImpactPanel
         areaHectares={selectedPolygon?.areaHectares || 10}
         riskProbability={selectedPolygon?.riskValue || 0.5}
+        coordinates={selectedPolygon?.coordinates}
       />
     </div>
   );

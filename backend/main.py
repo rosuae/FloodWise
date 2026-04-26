@@ -225,6 +225,147 @@ class ForecastPredictionRequest(BaseModel):
     lon: float
     days: int = 7
 
+import subprocess
+import tempfile
+import json
+import os
+from fastapi.responses import FileResponse
+
+class PolygonFeature(BaseModel):
+    coordinates: list[list[float]]
+
+def _generate_ndwi_data(coordinates: list[list[float]]):
+    if not coordinates or len(coordinates) < 3:
+        return None, ""
+
+    # Format for GeoJSON: [[lon, lat], [lon, lat], ...]
+    geojson_coords = [[coord[1], coord[0]] for coord in coordinates]
+    if geojson_coords[0] != geojson_coords[-1]:
+        geojson_coords.append(geojson_coords[0])
+
+    feature = {
+        "type": "Feature",
+        "geometry": { "type": "Polygon", "coordinates": [geojson_coords] },
+        "properties": {}
+    }
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.geojson', delete=False) as f:
+        json.dump(feature, f)
+        temp_path = f.name
+
+    output_png = temp_path.replace('.geojson', '.png')
+    output_csv = temp_path.replace('.geojson', '.csv')
+
+    import datetime
+    end_date = datetime.date.today()
+    start_date = end_date - datetime.timedelta(days=365)
+
+    script_path = os.path.join(os.path.dirname(__file__), "scripts", "ndwi_timeseries.py")
+    try:
+        subprocess.run([
+            "python3", script_path,
+            "--field-geojson", temp_path,
+            "--start", start_date.strftime("%Y-%m-%d"),
+            "--end", end_date.strftime("%Y-%m-%d"),
+            "--ee-project", "copernicus-450700",
+            "--output-plot", output_png,
+            "--output-csv", output_csv
+        ], check=True, capture_output=True, text=True, timeout=45)
+    except Exception as e:
+        print("Script execution failed:", e)
+        return None, ""
+
+    latest_ndwi = None
+    try:
+        import pandas as pd
+        if os.path.exists(output_csv):
+            df = pd.read_csv(output_csv)
+            if not df.empty:
+                latest_ndwi = float(df.iloc[-1]['ndwi_mean'])
+    except: pass
+
+    import base64
+    img_b64 = ""
+    if os.path.exists(output_png):
+        with open(output_png, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+    for p in [temp_path, output_png, output_csv]:
+        if os.path.exists(p): os.remove(p)
+
+    return latest_ndwi, img_b64
+
+@app.post("/api/ndwi-graph")
+async def generate_ndwi_graph_endpoint(polygon: PolygonFeature):
+    latest_ndwi, img_b64 = _generate_ndwi_data(polygon.coordinates)
+    if not img_b64:
+        raise HTTPException(status_code=500, detail="Graph generation failed")
+    return {"image_base64": img_b64, "latest_ndwi": latest_ndwi}
+
+class ZoneCreate(BaseModel):
+    name: str
+    coordinates: list[list[float]]
+    area_ha: float
+    crop_type: str
+    risk_percent: float
+    estimated_loss: float
+    rainfall_mm: float
+    slope_deg: float
+
+class ZoneOut(BaseModel):
+    id: int
+    name: str
+    area_ha: float
+    crop_type: str
+    risk_percent: float
+    estimated_loss: float
+    latest_ndwi: float | None
+    rainfall_mm: float | None
+    slope_deg: float | None
+    graph_image_b64: str | None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+@app.post("/api/zones", response_model=ZoneOut)
+async def create_zone(zone_in: ZoneCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # Check for existing zone with same parameters for this user to avoid duplicates
+    coords_json = json.dumps(zone_in.coordinates)
+    existing = db.query(models.SavedZone).filter(
+        models.SavedZone.user_id == current_user.id,
+        models.SavedZone.coordinates == coords_json,
+        models.SavedZone.area_ha == zone_in.area_ha,
+        models.SavedZone.crop_type == zone_in.crop_type
+    ).first()
+    
+    if existing:
+        return existing
+
+    latest_ndwi, img_b64 = _generate_ndwi_data(zone_in.coordinates)
+    
+    new_zone = models.SavedZone(
+        user_id=current_user.id,
+        name=zone_in.name,
+        coordinates=coords_json,
+        area_ha=zone_in.area_ha,
+        crop_type=zone_in.crop_type,
+        risk_percent=zone_in.risk_percent,
+        estimated_loss=zone_in.estimated_loss,
+        latest_ndwi=latest_ndwi,
+        rainfall_mm=zone_in.rainfall_mm,
+        slope_deg=zone_in.slope_deg,
+        graph_image_b64=img_b64
+    )
+    db.add(new_zone)
+    db.commit()
+    db.refresh(new_zone)
+    return new_zone
+
+@app.get("/api/zones", response_model=list[ZoneOut])
+async def list_zones(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return db.query(models.SavedZone).filter(models.SavedZone.user_id == current_user.id).order_by(models.SavedZone.created_at.desc()).all()
+
 @app.get("/")
 async def root() -> dict[str, str]:
     return {"message": "FloodWise API is running"}
