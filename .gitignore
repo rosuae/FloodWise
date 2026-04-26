@@ -1,2 +1,6 @@
 .venv/
 **/.env
+*.grib
+*.idx
+*.nc
+*pyc
