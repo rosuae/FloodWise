@@ -1,3 +1,9 @@
+.venv/
+**/.env
+*.grib
+*.idx
+*.nc
+*pyc
 # Environment Files
 .env
 .env.local
