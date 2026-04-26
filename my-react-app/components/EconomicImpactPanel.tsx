@@ -107,14 +107,23 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
   };
 
   const handleGoToDashboard = async () => {
-    // If we just saved it manually, we already have the state. 
-    // But most users will click "Dashboard" directly.
-    // To avoid creating a zone AND THEN another one if they click "Save", 
-    // we'll just navigate with query params for the "Live" view, 
-    // and they can save it once they are sure from the Map.
-    
+    // Save coordinates and stats to localStorage so the dashboard can fetch the live graph
     const { simulatedRainfall, simulatedSlope } = getSimulatedStats();
     const simulatedNdwi = (riskProbability * 0.8 + (Math.random() * 0.2)).toFixed(2);
+    
+    if (coordinates) {
+      localStorage.setItem('fw_live_analysis', JSON.stringify({
+        coordinates,
+        rainfall: simulatedRainfall,
+        slope: simulatedSlope,
+        ndwi: simulatedNdwi,
+        area: customArea,
+        crop: selectedCrop.name,
+        loss: Math.round(financialLoss),
+        risk: Math.round(riskProbability * 100)
+      }));
+    }
+    
     const params = new URLSearchParams({
       area: customArea.toString(),
       risk: (riskProbability * 100).toFixed(0),
@@ -122,7 +131,8 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
       loss: Math.round(financialLoss).toString(),
       ndwi: simulatedNdwi,
       rainfall: simulatedRainfall,
-      slope: simulatedSlope
+      slope: simulatedSlope,
+      live: 'true'
     });
     navigate(`/dashboard?${params.toString()}`);
   };

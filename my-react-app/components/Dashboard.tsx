@@ -43,9 +43,16 @@ const Dashboard: React.FC = () => {
   const [loadingZones, setLoadingZones] = useState(false);
   const [activeZone, setActiveZone] = useState<SavedLocation | null>(null);
   
-  const zoneId = queryParams.get('id');
+  // Live fetch states
+  const [liveGraphUrl, setLiveGraphUrl] = useState<string | null>(null);
+  const [loadingLiveGraph, setLoadingLiveGraph] = useState(false);
+  const [liveGraphError, setLiveGraphError] = useState<string | null>(null);
+  const [realLiveNdwi, setRealLiveNdwi] = useState<number | null>(null);
 
-  // Load user zones
+  const zoneId = queryParams.get('id');
+  const isLive = queryParams.get('live') === 'true';
+
+  // Load user zones from database
   useEffect(() => {
     if (!token) return;
     setLoadingZones(true);
@@ -65,30 +72,77 @@ const Dashboard: React.FC = () => {
     .finally(() => setLoadingZones(false));
   }, [token]);
 
-  // Set active zone based on ID or newest
+  // Set active zone based on ID
   useEffect(() => {
     if (zoneId && savedLocations.length > 0) {
       const found = savedLocations.find(l => l.id.toString() === zoneId);
       if (found) {
         setActiveZone(found);
+        setLiveGraphUrl(null); // Clear live data if we are looking at a saved zone
       }
-    } else if (!zoneId && savedLocations.length > 0) {
-      // Don't auto-select if no ID is present, let them use query params fallback or empty state
+    } else {
       setActiveZone(null);
     }
   }, [zoneId, savedLocations]);
+
+  // Live Graph Fetching Logic
+  useEffect(() => {
+    if (!isLive) {
+      setLiveGraphUrl(null);
+      setRealLiveNdwi(null);
+      return;
+    }
+
+    const liveData = localStorage.getItem('fw_live_analysis');
+    if (liveData) {
+      try {
+        const parsed = JSON.parse(liveData);
+        if (parsed.coordinates) {
+          setLoadingLiveGraph(true);
+          setLiveGraphError(null);
+          
+          fetch('http://localhost:8000/api/ndwi-graph', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ coordinates: parsed.coordinates })
+          })
+          .then(async res => {
+            if (res.ok) return res.json();
+            const errText = await res.text();
+            throw new Error(errText);
+          })
+          .then(data => {
+            if (data.image_base64) {
+              setLiveGraphUrl(`data:image/png;base64,${data.image_base64}`);
+            }
+            if (data.latest_ndwi !== null) {
+              setRealLiveNdwi(data.latest_ndwi);
+            }
+            setLoadingLiveGraph(false);
+          })
+          .catch(err => {
+            console.error("Live Graph fetch error:", err);
+            setLiveGraphError("Could not generate live graph. Fallback active.");
+            setLoadingLiveGraph(false);
+          });
+        }
+      } catch (e) {
+        console.error("Error parsing live analysis data", e);
+      }
+    }
+  }, [isLive, location.search]);
 
   const handleLocationSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     if (id) navigate(`/dashboard?id=${id}`);
   };
 
-  // Derive display values from activeZone (database) or queryParams (fallback/immediate)
+  // Derive display values from activeZone (database) or queryParams (live)
   const displayData = {
     area: activeZone ? activeZone.area_ha.toString() : (queryParams.get('area') || '0'),
     crop: activeZone ? activeZone.crop_type : (queryParams.get('crop') || ''),
     loss: activeZone ? activeZone.estimated_loss.toString() : (queryParams.get('loss') || '0'),
-    ndwi: activeZone ? activeZone.latest_ndwi : (queryParams.get('ndwi') ? parseFloat(queryParams.get('ndwi')!) : 0.42),
+    ndwi: realLiveNdwi !== null ? realLiveNdwi : (activeZone ? activeZone.latest_ndwi : (queryParams.get('ndwi') ? parseFloat(queryParams.get('ndwi')!) : 0.42)),
     rainfall: activeZone ? activeZone.rainfall_mm : (queryParams.get('rainfall') ? parseFloat(queryParams.get('rainfall')!) : 42.5),
     slope: activeZone ? activeZone.slope_deg : (queryParams.get('slope') ? parseFloat(queryParams.get('slope')!) : 4.8),
     risk: activeZone ? activeZone.risk_percent : (queryParams.get('risk') ? parseInt(queryParams.get('risk')!) : 65)
@@ -390,8 +444,20 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="w-full bg-gray-50 rounded-2xl border-2 border-gray-200 min-h-[300px] flex items-center justify-center p-4 relative z-10">
-                {activeZone?.graph_image_b64 ? (
+                {loadingLiveGraph ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <Activity size={32} className="animate-spin text-blue-500" />
+                    <span className="text-sm font-black text-blue-500 uppercase tracking-widest animate-pulse">Analyzing Copernicus Data...</span>
+                  </div>
+                ) : liveGraphUrl ? (
+                  <img src={liveGraphUrl} alt="NDWI Time Series Graph" className="max-w-full max-h-[500px] object-contain rounded-lg shadow-inner" />
+                ) : activeZone?.graph_image_b64 ? (
                   <img src={`data:image/png;base64,${activeZone.graph_image_b64}`} alt="NDWI Time Series Graph" className="max-w-full max-h-[500px] object-contain rounded-lg shadow-inner" />
+                ) : liveGraphError ? (
+                  <div className="text-center p-6">
+                    <AlertTriangle size={48} className="text-amber-500 mx-auto mb-4" />
+                    <p className="text-amber-600 font-bold max-w-md mx-auto">{liveGraphError}</p>
+                  </div>
                 ) : (
                   <div className="text-center p-6 text-gray-400 font-bold uppercase text-xs tracking-widest">
                     No graph data available for this zone.
