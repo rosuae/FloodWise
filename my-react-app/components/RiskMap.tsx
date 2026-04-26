@@ -288,6 +288,7 @@ const GeomanControls: React.FC<{
     });
 
     pm.setLang('en');
+    pm.setGlobalOptions({ exitModeOnEscape: true });
 
     map.on('pm:create', handleCreate);
 
@@ -298,6 +299,45 @@ const GeomanControls: React.FC<{
   }, [map, onAreaCreated]);
 
   return null;
+};
+
+const DrawUndoControls: React.FC = () => {
+  const map = useMap();
+  const [activeShape, setActiveShape] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleDrawStart = (event: { shape: string }) => {
+      setActiveShape(event.shape);
+    };
+
+    const handleDrawEnd = () => {
+      setActiveShape(null);
+    };
+
+    map.on('pm:drawstart', handleDrawStart as never);
+    map.on('pm:drawend', handleDrawEnd as never);
+    map.on('pm:cancel', handleDrawEnd as never);
+
+    return () => {
+      map.off('pm:drawstart', handleDrawStart as never);
+      map.off('pm:drawend', handleDrawEnd as never);
+      map.off('pm:cancel', handleDrawEnd as never);
+    };
+  }, [map]);
+
+  if (!activeShape) {
+    return null;
+  }
+
+  return (
+    <div className="pointer-events-none absolute left-4 top-4 z-1000">
+      <div className="rounded-full border border-fw-neutral/30 bg-fw-bg/95 px-3 py-2 shadow-lg backdrop-blur">
+        <span className="text-[11px] font-medium text-fw-neutral">
+          Press Esc to cancel the current drawing.
+        </span>
+      </div>
+    </div>
+  );
 };
 
 const FloodRiskMap: React.FC = () => {
@@ -347,6 +387,7 @@ const FloodRiskMap: React.FC = () => {
         <ViewportFetcher onDataLoaded={setPolygons} />
         <MapClickHandler onLocationSelect={handleLocationSelect} />
         <GeomanControls onAreaCreated={handleAreaCreated} />
+        <DrawUndoControls />
 
         {customMarker && (
           <Marker position={customMarker}>
