@@ -15,3 +15,6 @@ cdsapi
 xarray
 cfgrib
 eccodes
+scikit-learn
+joblib
+scipymatplotlib
