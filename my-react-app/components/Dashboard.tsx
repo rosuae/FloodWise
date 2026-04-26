@@ -118,12 +118,15 @@ const Dashboard: React.FC = () => {
             {savedLocations.length > 0 && (
               <div className="flex items-center gap-2 bg-white border-2 border-fw-neutral/20 px-3 py-1.5 rounded-xl shadow-sm">
                 <Bookmark size={14} className="text-fw-primary" />
-                <select 
-                  onChange={handleLocationSelect}
+                <select
+                  value=""
+                  onChange={(e) => {
+                    handleLocationSelect(e);
+                    e.currentTarget.value = '';
+                  }}
                   className="bg-transparent text-xs font-black uppercase text-black focus:outline-none cursor-pointer"
-                  defaultValue=""
                 >
-                  <option value="" disabled>Saved Locations</option>
+                  <option value="" disabled hidden>SAVED LOCATIONS</option>
                   {savedLocations.map(loc => (
                     <option key={loc.id} value={loc.id}>{loc.name}</option>
                   ))}
@@ -163,17 +166,47 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="mb-8 bg-fw-accent/20 border-l-8 border-fw-accent p-6 rounded-r-2xl flex items-center gap-6 animate-in fade-in slide-in-from-left duration-500">
-              <div className="bg-fw-accent p-3 rounded-full text-black">
-                <Info size={24} />
+            <div className="mb-8 rounded-2xl overflow-hidden shadow-xl animate-in fade-in slide-in-from-left duration-500" style={{background: 'linear-gradient(135deg, #2a3f10 0%, #3d6020 55%, #2a4a10 100%)'}}>
+              <div className="flex items-center gap-5 px-6 py-5">
+
+                {/* Icon badge */}
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center" style={{background: 'rgba(248,216,86,0.18)', border: '2px solid rgba(248,216,86,0.45)'}}>
+                  <Info size={22} className="text-fw-accent" />
+                </div>
+
+                {/* Label + title */}
+                <div className="flex-shrink-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-fw-accent/70 leading-none mb-1">Zone Analysis Active</p>
+                  <h4 className="text-base font-black uppercase tracking-tight text-white leading-none">Selected Zone</h4>
+                </div>
+
+                {/* Divider */}
+                <div className="w-px h-10 bg-white/15 flex-shrink-0" />
+
+                {/* Pills row */}
+                <div className="flex items-center gap-3 flex-1 flex-wrap">
+                  <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-sm font-bold text-white">
+                    <span className="text-fw-accent/70 uppercase text-[10px] tracking-widest font-black">Area</span>
+                    <span className="font-black text-base">{parseFloat(area || '0').toFixed(2)} ha</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-sm font-bold text-white">
+                    <span className="text-fw-accent/70 uppercase text-[10px] tracking-widest font-black">Crop</span>
+                    <span className="font-black text-base">{crop}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black" style={{background: 'rgba(220,38,38,0.28)', border: '1px solid rgba(220,38,38,0.55)', color: '#fca5a5'}}>
+                    <span className="uppercase text-[10px] tracking-widest font-black opacity-80">Est. Loss</span>
+                    <span className="text-white font-black text-base">{parseInt(loss || '0').toLocaleString()} EUR</span>
+                  </span>
+                </div>
+
+                {/* Right badge */}
+                <div className="flex-shrink-0 flex items-center gap-2">
+                  <AlertTriangle size={18} className="text-fw-accent animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-fw-accent/60 hidden lg:block">Risk Active</span>
+                </div>
+
               </div>
-              <div>
-                <h4 className="font-black uppercase text-sm text-black">Selected Zone Analysis</h4>
-                <p className="text-xs font-bold text-black/70">
-                  Analyzing an area of <span className="font-black text-black">{area} ha</span> with <span className="font-black text-black">{crop}</span> crop. 
-                  Estimated calculated loss: <span className="font-black text-red-600">{parseInt(loss || "0").toLocaleString()} EUR</span>.
-                </p>
-              </div>
+              <div className="h-1 w-full" style={{background: 'linear-gradient(90deg, #f8d856, #91a436, transparent)'}} />
             </div>
 
             {/* Risc Principal Sections */}
