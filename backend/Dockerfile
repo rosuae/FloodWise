@@ -6,6 +6,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Instalam dependintele de sistem necesare pentru bibliotecile GIS si meteo
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgdal-dev \
+    libproj-dev \
+    libeccodes-dev \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Instalam dependintele separat pentru cache
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
