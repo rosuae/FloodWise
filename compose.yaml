@@ -21,7 +21,7 @@ services:
       context: ./backend
     volumes:
       - ./backend:/app
-    command: sh -c "pip install --no-cache-dir -r requirements.txt && python -m uvicorn main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "python -m uvicorn main:app --host 0.0.0.0 --port 8000"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
@@ -41,11 +41,10 @@ services:
   frontend:
     build:
       context: ./my-react-app
-    user: "0:0"
     volumes:
       - ./my-react-app:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+      - frontend-node-modules:/app/node_modules
+    command: sh -c "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules 2>/dev/null)\" ]; then npm ci --no-audit --no-fund; fi && npm run dev -- --host 0.0.0.0 --port 5173"
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
@@ -59,3 +58,4 @@ services:
 
 volumes:
   floodwise-db-data:
+  frontend-node-modules:
