@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingDown, AlertTriangle, DollarSign, Clock, Leaf, LayoutDashboard } from 'lucide-react';
+import { TrendingDown, AlertTriangle, DollarSign, Clock, Leaf, LayoutDashboard, Bookmark, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CropData {
@@ -21,19 +21,23 @@ const CROP_DATABASE: CropData[] = [
 interface EconomicImpactPanelProps {
   areaHectares?: number;
   riskProbability?: number; // 0-1
+  onImpactChange?: (data: { crop: string; loss: number; area: number }) => void;
 }
 
 const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({ 
   areaHectares = 10, 
-  riskProbability = 0.5 
+  riskProbability = 0.5,
+  onImpactChange
 }) => {
   const [selectedCropId, setSelectedCropId] = useState(CROP_DATABASE[0].id);
   const [durationDays, setDurationDays] = useState(3);
   const [customArea, setCustomArea] = useState(areaHectares);
+  const [isSaved, setIsSaved] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
     setCustomArea(areaHectares);
+    setIsSaved(false);
   }, [areaHectares]);
 
   const selectedCrop = CROP_DATABASE.find(c => c.id === selectedCropId) || CROP_DATABASE[0];
@@ -41,6 +45,16 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
   const vulnerability = selectedCrop.vulnerabilityFactor;
   const expunere = customArea * selectedCrop.valuePerHectare;
   const financialLoss = expunere * hazardFactor * vulnerability * riskProbability;
+
+  useEffect(() => {
+    if (onImpactChange) {
+      onImpactChange({
+        crop: selectedCrop.name,
+        loss: Math.round(financialLoss),
+        area: customArea
+      });
+    }
+  }, [selectedCrop.name, financialLoss, customArea, onImpactChange]);
 
   const handleGoToDashboard = () => {
     const params = new URLSearchParams({
@@ -50,6 +64,32 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
       loss: Math.round(financialLoss).toString()
     });
     navigate(`/dashboard?${params.toString()}`);
+  };
+
+  const handleSaveLocation = () => {
+    const newLocation = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: `${selectedCrop.name} field - ${customArea}ha`,
+      area: customArea.toString(),
+      risk: (riskProbability * 100).toFixed(0),
+      crop: selectedCrop.name,
+      loss: Math.round(financialLoss).toString()
+    };
+
+    const saved = localStorage.getItem('fw_saved_locations');
+    let savedArray = [];
+    if (saved) {
+      try {
+        savedArray = JSON.parse(saved);
+      } catch (e) {
+        console.error('Error parsing saved locations', e);
+      }
+    }
+    
+    savedArray.push(newLocation);
+    localStorage.setItem('fw_saved_locations', JSON.stringify(savedArray));
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
   };
 
   return (
@@ -125,13 +165,23 @@ const EconomicImpactPanel: React.FC<EconomicImpactPanelProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={handleGoToDashboard}
-          className="w-full flex items-center justify-center gap-2 bg-fw-secondary text-white py-3 rounded-xl font-black uppercase text-xs shadow-lg hover:scale-105 transition-transform"
-        >
-          <LayoutDashboard size={16} />
-          View Detailed Dashboard
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={handleGoToDashboard}
+            className="flex items-center justify-center gap-2 bg-fw-secondary text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform"
+          >
+            <LayoutDashboard size={14} />
+            Dashboard
+          </button>
+          <button
+            onClick={handleSaveLocation}
+            disabled={isSaved}
+            className={`flex items-center justify-center gap-2 ${isSaved ? 'bg-green-600' : 'bg-black'} text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform disabled:scale-100`}
+          >
+            {isSaved ? <Check size={14} /> : <Bookmark size={14} />}
+            {isSaved ? 'Saved' : 'Save Zone'}
+          </button>
+        </div>
 
         <div className="text-[9px] text-black/70 font-black leading-tight bg-fw-neutral/5 p-3 rounded-lg border border-fw-neutral/10 uppercase tracking-tighter">
           Calculation: Exposure (Ha x Value) x Hazard x Vulnerability

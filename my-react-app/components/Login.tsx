@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../src/context/AuthContext';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Phone } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [smsEnabled, setSmsEnabled] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -41,7 +43,25 @@ const Login: React.FC = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      const userData = await userResponse.json();
+      let userData = await userResponse.json();
+
+      // If user provided phone or changed SMS during login, update it
+      if (phoneNumber || smsEnabled) {
+        const updateResponse = await fetch(`${API_URL}/users/me/sms-alerts`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            phone_number: phoneNumber || userData.phone_number,
+            enabled: smsEnabled
+          })
+        });
+        if (updateResponse.ok) {
+          userData = await updateResponse.json();
+        }
+      }
 
       login(token, userData);
       navigate('/dashboard');
@@ -91,6 +111,35 @@ const Login: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-fw-text mb-1">Phone Number (Optional to update)</label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-fw-text opacity-50">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <input
+                  type="tel"
+                  className="block w-full rounded-lg border border-fw-neutral/30 bg-fw-bg py-2.5 pl-10 pr-3 text-fw-text placeholder-fw-text/50 transition-all focus:border-fw-primary focus:bg-fw-bg focus:outline-none focus:ring-2 focus:ring-fw-primary/20 sm:text-sm"
+                  placeholder="+40 7xx xxx xxx"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-fw-primary/5 rounded-xl border-2 border-fw-primary/10 transition-all hover:bg-fw-primary/10">
+              <input
+                type="checkbox"
+                id="sms-alerts-login"
+                checked={smsEnabled}
+                onChange={(e) => setSmsEnabled(e.target.checked)}
+                className="w-5 h-5 rounded border-2 border-fw-primary text-fw-primary focus:ring-fw-primary/20 accent-fw-primary cursor-pointer"
+              />
+              <label htmlFor="sms-alerts-login" className="text-xs font-black uppercase text-fw-text cursor-pointer select-none">
+                Enable SMS Flood Alerts
+              </label>
             </div>
 
             <div>
