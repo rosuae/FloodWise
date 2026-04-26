@@ -87,8 +87,8 @@ def get_elevation_data(lat, lon, token):
         return np.nan
 
 def process_elevation(
-    input_csv="backend/data/raw/evenimente_baza.csv",
-    output_csv="backend/data/groundwater_ml_dataset_final.csv",
+    input_csv="backend/data/random_points_in_romania.csv",
+    output_csv="backend/data/randomRomaniaElevation.csv",
     save_every=10
 ):
     print(f"Loading data from: {input_csv}")
@@ -102,16 +102,18 @@ def process_elevation(
         print("Creating new output file.")
     
     if "elevation" not in df_output.columns:
-        df_output["elevation"] = np.nan
+        df_output["elevation"] = pd.Series(np.nan, index=df_output.index, dtype="float64")
+    else:
+        df_output["elevation"] = pd.to_numeric(df_output["elevation"], errors="coerce").astype("float64")
         
     # Find unprocessed rows
     mask_unprocessed = df_output["elevation"].isna()
     indices_to_process = df_output[mask_unprocessed].index
     
     total = len(indices_to_process)
-    if total == 0:
-        print("All rows already have elevation data!")
-        return
+    # if total == 0:
+    #     print("All rows already have elevation data!")
+    #     return
 
     print(f"Rows to process: {total}")
     
@@ -122,26 +124,27 @@ def process_elevation(
         return
 
     processed_count = 0
-    for idx in indices_to_process:
-        row = df_output.loc[idx]
+    for index, row in df_output.iterrows():
         lat = row["Lat"]
         lon = row["Lon"]
         
-        print(f"[{processed_count + 1}/{total}] Processing {row['ID_Statie']} | Lat: {lat}, Lon: {lon}")
+        print(f"Processing {index} | Lat: {lat}, Lon: {lon}")
         
         elevation = get_elevation_data(lat, lon, token)
         
         if not math.isnan(elevation):
-            df_output.at[idx, "elevation"] = elevation
+            df_output.at[index, "elevation"] = elevation
             print(f"-> Success: {elevation:.2f} m")
         else:
             print("-> Failed to retrieve elevation")
             
         processed_count += 1
         
-        if processed_count % save_every == 0 or processed_count == total:
-            df_output.to_csv(output_csv, index=False)
-            print(f"--- Progress saved to {output_csv} ---")
+        # if processed_count % save_every == 0 or processed_count == total:
+        #     df_output.to_csv(output_csv, index=False)
+        #     print(f"--- Progress saved to {output_csv} ---")
+        
+    df_output.to_csv(output_csv, index=False)
 
     print("\nElevation retrieval complete!")
 

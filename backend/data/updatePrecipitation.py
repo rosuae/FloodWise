@@ -54,6 +54,14 @@ def _normalize_result(result: Any) -> dict[str, Any]:
     return {"soil_moisture": result}
 
 
+def _ensure_float_column(df: pd.DataFrame, column: str) -> None:
+    if column not in df.columns:
+        df[column] = pd.Series(pd.NA, index=df.index, dtype="float64")
+        return
+
+    df[column] = pd.to_numeric(df[column], errors="coerce").astype("float64")
+
+
 def update_soil_data(csv_path: Path, soil_path: Path, output_path: Path | None = None) -> Path:
     if not csv_path.exists():
         raise FileNotFoundError(f"Fisierul CSV nu exista: {csv_path}")
@@ -66,24 +74,27 @@ def update_soil_data(csv_path: Path, soil_path: Path, output_path: Path | None =
 
     soil_fn = _load_soil_function(soil_path)
 
-    computed_rows: list[dict[str, Any]] = []
-    for index, row in df.iterrows():
-        print(f"$$Procesare rand {index+1}/{len(df)}: lat={row[lat_col]}, lon={row[lon_col]}")
-        lat = row[lat_col]
-        lon = row[lon_col]
-        year, month, day = row['Data'].split("-")
-
-        result = soil_fn(lat, lon, year, month, day)
-        computed_rows.append(_normalize_result(result))
-    computed_df = pd.DataFrame(computed_rows, index=df.index)
-
-    for col in computed_df.columns:
-        df[col] = computed_df[col]
-
     target = output_path or csv_path
-    df.to_csv(target, index=False)
-    return target
+    try:
+        for index, row in df.iterrows():
+            print(f"$$Procesare rand {index+1}/{len(df)}: lat={row[lat_col]}, lon={row[lon_col]}")
+            lat = row[lat_col]
+            lon = row[lon_col]
+            year, month, day = row['Data'].split("-")
 
+            result = soil_fn(lat, lon, year, month, day)
+            normalized_result = _normalize_result(result)
+            for col, value in normalized_result.items():
+                _ensure_float_column(df, col)
+                df.at[index, col] = value
+
+            df.to_csv(target, index=False)
+
+        return target
+    except KeyboardInterrupt:
+        df.to_csv(target, index=False)
+        print(f"\nProcesarea a fost oprita cu Ctrl+C. Progresul a fost salvat in: {target}")
+        return target
 
 def main() -> None:
     base_dir = Path(__file__).resolve().parent
