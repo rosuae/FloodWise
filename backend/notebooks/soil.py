@@ -268,9 +268,10 @@ def fetchSoilMoisture(lon, lat, endDate, initialRangeDays=3, stepDays=30, maxRan
             print("Extind intervalul temporal și reîncerc.")
             dateRangeDays += stepDays
 
-    if last_exception is not None:
-        raise RuntimeError(f"Max retries exceeded. Last error: {last_exception}") from last_exception
+    return None
+    # if last_exception is not None:
+    #     raise RuntimeError(f"Max retries exceeded. Last error: {last_exception}") from last_exception
 
-    raise RuntimeError("Max retries exceeded: no valid pixels found for the selected area and period.")
+    # raise RuntimeError("Max retries exceeded: no valid pixels found for the selected area and period.")
 
 # fetchSoilMoisture(45.575496, 27.76228, "2026-04-25T23:59:59Z")

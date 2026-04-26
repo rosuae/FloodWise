@@ -2,6 +2,10 @@ import cdsapi
 import xarray as xr
 import pandas as pd
 import os
+import math
+
+
+ERA5_GRID_DEG = 0.25
 
 
 def read_grib_file(path: str) -> xr.Dataset:
@@ -32,11 +36,14 @@ def read_grib_file(path: str) -> xr.Dataset:
   ) from last_error
 
 
-def download_precip_grib(target: str, area: list, year: str, month: str, day: str) -> str:
+def download_precip_grib(target: str, area: list[float], year: str, month: str, day: str) -> str:
   """Download ERA5 precipitation GRIB only if target does not already exist."""
-  if os.path.exists(target):
+  if os.path.exists(target) and os.path.getsize(target) > 0:
     print(f"Fisier existent, sar peste download: {target}")
     return target
+
+  if os.path.exists(target) and os.path.getsize(target) == 0:
+    os.remove(target)
 
   client = cdsapi.Client()
   dataset = 'reanalysis-era5-single-levels'
@@ -71,15 +78,48 @@ def mean_precipitation_mm(ds: xr.Dataset) -> float:
 
   raise RuntimeError(f"Nu am gasit variabila de precipitatii. Variabile prezente: {list(ds.data_vars)}")
 
-def extract(area, year, month, day):
-    target = 'download.grib'  # Example area for Romania
 
-    download_precip_grib(target, area, year, month, day)
+def _snap_down(value: float, step: float) -> float:
+  return math.floor(value / step) * step
 
-    dataset_grib = read_grib_file(target)
-    mean_mm = mean_precipitation_mm(dataset_grib)
 
-    out_csv = "precipitations_mean.csv"
-    pd.DataFrame([{"mean_precipitation_mm": mean_mm}]).to_csv(out_csv, index=False)
-    print(f"\nMedia precipitatiilor pe aria selectata: {mean_mm:.3f} mm")
-    print(f"CSV cu media salvat: {out_csv}")
+def _snap_up(value: float, step: float) -> float:
+  return math.ceil(value / step) * step
+
+
+def point_to_cds_area(lon: float, lat: float, size: float = 0.1) -> list[float]:
+  """Build CDS area [north, west, south, east] aligned to ERA5 0.25deg grid."""
+  half_size = max(size / 2.0, ERA5_GRID_DEG / 2.0)
+
+  north = _snap_up(lat + half_size, ERA5_GRID_DEG)
+  south = _snap_down(lat - half_size, ERA5_GRID_DEG)
+  west = _snap_down(lon - half_size, ERA5_GRID_DEG)
+  east = _snap_up(lon + half_size, ERA5_GRID_DEG)
+
+  north = min(90.0, north)
+  south = max(-90.0, south)
+  west = max(-180.0, west)
+  east = min(180.0, east)
+
+  if north <= south:
+    south = max(-90.0, lat - ERA5_GRID_DEG)
+    north = min(90.0, lat + ERA5_GRID_DEG)
+
+  if east <= west:
+    west = max(-180.0, lon - ERA5_GRID_DEG)
+    east = min(180.0, lon + ERA5_GRID_DEG)
+
+  return [round(north, 6), round(west, 6), round(south, 6), round(east, 6)]
+
+def run(lat: float, lon: float, year: str, month: str, day: str):
+  target = f"download_{year}{month}{day}_{lat:.4f}_{lon:.4f}.grib"
+
+  area = point_to_cds_area(lon, lat)
+  print(f"CDS area folosit: {area}")
+  download_precip_grib(target, area, year, month, day)
+
+  dataset_grib = read_grib_file(target)
+  mean_mm = mean_precipitation_mm(dataset_grib)
+
+  print(f"\nMedia precipitatiilor pe aria selectata: {mean_mm:.3f} mm")
+  return {"mean_precipitation_mm": mean_mm}
