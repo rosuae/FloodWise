@@ -233,38 +233,7 @@ flowchart LR
 | Slope & altitude | Local rasters | `etl/static_features.py` | Sampled from GeoTIFF via `rasterio` with CRS reprojection |
 | Hydraulic cond. | GLHYMPS | `etl/static_features.py` | Point-in-polygon lookup using `geopandas` spatial index |
 
-### 2. ETL & Feature Engineering
-
-The ETL pipeline (`etl/pipeline.py`) orchestrates the full enrichment process:
-
-```mermaid
-flowchart TD
-    START[Read evenimente_baza.csv] --> VALIDATE[Validate required columns:<br/>ID_Statie, Lat, Lon, Data, Inundatie_Target]
-    VALIDATE --> AUTH{CDSE Auth<br/>available?}
-    AUTH -->|Token or OAuth| TOKEN[Obtain CDSE bearer token]
-    AUTH -->|Missing| SKIP[Dynamic features → NaN]
-    TOKEN --> LOAD[Load static context:<br/>DEM raster, Slope raster, GLHYMPS]
-    SKIP --> LOAD
-
-    LOAD --> LOOP["For each event row"]
-    LOOP --> STATIC["Extract static features:<br/>• Clay % (SoilGrids REST)<br/>• Elevation (DEM raster sampling)<br/>• Slope (slope raster sampling)<br/>• Hydraulic conductivity (GLHYMPS)"]
-    LOOP --> DYNAMIC["Extract dynamic features:<br/>• ERA5 precip (CDSE OData → event day + 7d)<br/>• Sentinel-1 soil moisture (CDSE Catalogue)"]
-    STATIC --> MERGE[Merge with base event]
-    DYNAMIC --> MERGE
-    MERGE --> NEXT{More rows?}
-    NEXT -->|Yes| LOOP
-    NEXT -->|No| SAVE[Save groundwater_ml_dataset_final.csv]
-
-    style START fill:#f8d856,color:#1a240f
-    style SAVE fill:#2a3f10,color:#fff
-```
-
-**Robustness features:**
-- Network calls use `tenacity` retry with exponential backoff
-- Individual row failures return `NaN` and don't halt the pipeline
-- Heavy spatial datasets (DEM, GLHYMPS) are loaded once and shared across rows
-
-### 3. Model Training
+### 2. Model Training
 
 ```python
 # train_model.py — Summary
